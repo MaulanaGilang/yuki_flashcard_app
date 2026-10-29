@@ -56,10 +56,31 @@ def keyword(w: dict) -> str:
     return g.upper()[:24]
 
 
+_DOUBLE = {"run", "sit", "get", "put", "shut", "stop", "cut", "swim", "hit", "begin", "set", "win", "dig", "hug",
+           "plan", "drop", "shop", "chat", "jog", "nod", "rub", "skip", "spit", "step", "wrap", "beg", "grab", "knit"}
+
+
+def gerund(phrase: str) -> str:
+    """'come out' -> 'coming out', 'run' -> 'running', 'lie down' -> 'lying down'."""
+    head, _, rest = phrase.partition(" ")
+    h = head.lower()
+    if h in _DOUBLE:
+        ing = h + h[-1] + "ing"
+    elif h.endswith("ie"):
+        ing = h[:-2] + "ying"
+    elif h.endswith("e") and not h.endswith(("ee", "ye", "oe")) and len(h) > 2:
+        ing = h[:-1] + "ing"
+    elif h.endswith("ing"):
+        ing = h
+    else:
+        ing = h + "ing"
+    return f"{ing} {rest}".strip()
+
+
 def subject_for(w: dict) -> str:
     g = first_gloss(w)
     if w["pos"] == "v":
-        return f"cute character performing the action: {re.sub(r'^to ', '', g)}"
+        return f"a cute cartoon person {gerund(re.sub(r'^to ', '', g))}"
     if g.lower() in COLOURS:
         # A plain coloured object; white needs a contrasting rim or background removal eats it.
         return f"glossy {g} paint splash blob" + (" with a soft grey outline" if g.lower() == "white" else "")
@@ -227,6 +248,21 @@ def run(recipe: Recipe, budget: int | None = None, limit: int | None = None, sug
     if suggest:
         suggest_fluent(recipe)
         return
+    # One images run at a time (the daily scheduled batch and a manual run must not both spend
+    # the quota or write image_state.json). A lock older than 6 h is treated as stale.
+    lock = recipe.work / "images.lock"
+    if lock.exists() and time.time() - lock.stat().st_mtime < 6 * 3600:
+        log.warning("images: another run holds %s (pid %s); exiting", lock, lock.read_text().strip())
+        return
+    import os
+    lock.write_text(str(os.getpid()))
+    try:
+        _run(recipe, budget, limit)
+    finally:
+        lock.unlink(missing_ok=True)
+
+
+def _run(recipe: Recipe, budget: int | None, limit: int | None) -> None:
     cfg = recipe.section("media")["images"]
     size, max_bytes = cfg["size"], cfg["max_kb"] * 1024
     outline_px = cfg["outline_dp"] * cfg["px_per_dp"]

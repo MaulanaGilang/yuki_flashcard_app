@@ -186,7 +186,7 @@ def pick_sentence_source(s: dict, cfg: dict) -> dict:
 # ---------------------------------------------------------------- TTS
 
 
-async def _tts_batch(jobs: list[tuple[str, Path]], voice: str, rate: str, concurrency: int = 4) -> list[str]:
+async def _tts_batch(jobs: list[tuple[str, Path]], voice: str, rate: str, concurrency: int = 6) -> list[str]:
     import edge_tts
 
     sem = asyncio.Semaphore(concurrency)

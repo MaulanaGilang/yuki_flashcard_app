@@ -55,7 +55,7 @@ Tests: `& $py -m pytest tests`. They also check that `search_key` normalisation 
 
 ### The daily image batch (resume every day)
 
-FLUX.1 schnell on Workers AI's free tier allows about 170 images a day (10,000 neurons). 3,900 words need art, so the batch takes about 3–4 weeks. Once a day:
+FLUX.1 schnell on Workers AI's free tier allows about 90–100 images a day (10,000 neurons, measured on the first day). About 3,700 words need art, so the batch takes about 5–6 weeks. Once a day:
 
 ```powershell
 & $py -X utf8 -m yuki_pipeline images                     # default budget: media.images.flux.daily_image_budget

@@ -128,7 +128,7 @@ media:
     flux:
       model: "@cf/black-forest-labs/flux-1-schnell"
       steps: 4
-      daily_image_budget: 170
+      daily_image_budget: 100  # ~10k neurons/day ≈ 90–100 images at 4 steps
       # Fixed style prompt from DESIGN-SYSTEM.md §5.4
       style_prompt: "single {subject}, glossy soft 3D icon in the style of Microsoft Fluent Emoji 3D, rounded friendly shapes, soft studio lighting, subtle gradients, centered, isolated on plain white background, no text, no border"
       # Workers AI exposes no seed for this model; the fixed prompt + cached raw output keep it reproducible.
