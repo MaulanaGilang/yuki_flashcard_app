@@ -45,7 +45,7 @@ import app.yuki.core.designsystem.component.CardDivider
 import app.yuki.core.designsystem.component.GrammarChip
 import app.yuki.core.designsystem.component.Headword
 import app.yuki.core.designsystem.component.SectionLabel
-import app.yuki.core.designsystem.component.StrokeOrderPanel
+import app.yuki.core.designsystem.component.HowToWrite
 import app.yuki.core.designsystem.component.toneText
 import app.yuki.core.designsystem.component.HowToReadPanel
 import app.yuki.core.designsystem.component.ScriptText
@@ -178,8 +178,7 @@ fun WordDetailScreen(viewModel: WordDetailViewModel, onBack: () -> Unit) {
     }
     if (isZh && detail.characters.isNotEmpty()) {
       Column(Modifier.fillMaxWidth().background(c.neutral.surface, RoundedCornerShape(24.dp)).padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        SectionLabel("How to write")
-        detail.characters.forEach { StrokeOrderPanel(it) }
+        HowToWrite(detail.characters)
       }
     }
     Column(Modifier.fillMaxWidth().background(c.neutral.surface, RoundedCornerShape(24.dp)).padding(20.dp)) {

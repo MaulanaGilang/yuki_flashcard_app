@@ -32,29 +32,57 @@ abstract class CardDao {
   @Query("SELECT * FROM card WHERE wordId = :wordId")
   abstract suspend fun forWord(wordId: String): List<CardEntity>
 
-  @Query(
-    """SELECT * FROM card WHERE lang = :lang AND suspended = 0 AND markedKnown = 0 AND orphaned = 0
-       AND state != 'NEW' AND due < :endOfDay ORDER BY due""",
-  )
-  abstract suspend fun dueBefore(lang: String, endOfDay: Instant): List<CardEntity>
+  // `types` holds CardType names: the card directions switched on for the language (PRD S6).
 
   @Query(
     """SELECT * FROM card WHERE lang = :lang AND suspended = 0 AND markedKnown = 0 AND orphaned = 0
-       AND state = 'NEW' ORDER BY newRank LIMIT :limit""",
+       AND type IN (:types) AND state != 'NEW' AND due < :endOfDay ORDER BY due""",
   )
-  abstract suspend fun nextNew(lang: String, limit: Int): List<CardEntity>
+  abstract suspend fun dueBefore(lang: String, endOfDay: Instant, types: List<String>): List<CardEntity>
+
+  /**
+   * Next new cards in introduction order. Listening and production cards of a word only become
+   * available once its recognition card has graduated to Review.
+   */
+  @Query(
+    """SELECT * FROM card AS c WHERE c.lang = :lang AND c.suspended = 0 AND c.markedKnown = 0 AND c.orphaned = 0
+       AND c.type IN (:types) AND c.state = 'NEW'
+       AND (c.type = 'RECOGNITION' OR EXISTS (
+         SELECT 1 FROM card AS r WHERE r.wordId = c.wordId AND r.type = 'RECOGNITION' AND r.state = 'REVIEW'))
+       ORDER BY c.newRank, c.type DESC LIMIT :limit""",
+  )
+  abstract suspend fun nextNew(lang: String, limit: Int, types: List<String>): List<CardEntity>
 
   @Query(
     """SELECT COUNT(*) FROM card WHERE lang = :lang AND suspended = 0 AND markedKnown = 0 AND orphaned = 0
-       AND state != 'NEW' AND due < :endOfDay""",
+       AND type IN (:types) AND state != 'NEW' AND due < :endOfDay""",
   )
-  abstract fun observeDueCount(lang: String, endOfDay: Instant): Flow<Int>
+  abstract fun observeDueCount(lang: String, endOfDay: Instant, types: List<String>): Flow<Int>
 
   @Query(
     """SELECT COUNT(*) FROM card WHERE lang = :lang AND suspended = 0 AND markedKnown = 0 AND orphaned = 0
-       AND state != 'NEW' AND due < :endOfDay""",
+       AND type IN (:types) AND state != 'NEW' AND due < :endOfDay""",
   )
-  abstract suspend fun dueCount(lang: String, endOfDay: Instant): Int
+  abstract suspend fun dueCount(lang: String, endOfDay: Instant, types: List<String>): Int
+
+  /** Due dates of every scheduled card, for the review forecast (PRD S12). */
+  @Query("SELECT due FROM card WHERE suspended = 0 AND markedKnown = 0 AND orphaned = 0 AND state != 'NEW' AND due < :until")
+  abstract suspend fun duesBefore(until: Instant): List<Instant>
+
+  /** Onboarding / checkpoint: skip every still-new card below [belowRank] (newRank = level * 100 000 + freq). */
+  @Query("UPDATE card SET markedKnown = 1 WHERE lang = :lang AND state = 'NEW' AND newRank < :belowRank")
+  abstract suspend fun markKnownBelow(lang: String, belowRank: Int)
+
+  /** Checkpoint pass: every still-new card of one level becomes known. */
+  @Query("UPDATE card SET markedKnown = 1 WHERE lang = :lang AND state = 'NEW' AND newRank >= :fromRank AND newRank < :toRank")
+  abstract suspend fun markKnownBetween(lang: String, fromRank: Int, toRank: Int)
+
+  /** A pack imported from file takes over its language's existing cards (stable word ids keep progress). */
+  @Query("UPDATE card SET packId = :packId, orphaned = 0 WHERE wordId IN (:wordIds)")
+  abstract suspend fun adopt(packId: String, wordIds: List<String>)
+
+  @Query("UPDATE card SET orphaned = 1 WHERE lang = :lang AND packId != :packId")
+  abstract suspend fun orphanOthers(lang: String, packId: String)
 
   @Query("SELECT wordId, state, stability, suspended, markedKnown FROM card WHERE lang = :lang AND type = 'RECOGNITION' AND orphaned = 0")
   abstract fun observeStatuses(lang: String): Flow<List<CardStatusRow>>
@@ -91,6 +119,9 @@ data class RetentionCounts(val total: Int, val correct: Int)
 
 data class CardRating(val cardId: String, val rating: Int)
 
+data class StatRow(val lang: String, val rating: Int, val reviewedAt: Instant, val durationMs: Long, val beforeState: app.yuki.core.model.CardState)
+
+
 @Dao
 abstract class ReviewLogDao {
   @Query(
@@ -124,6 +155,17 @@ abstract class ReviewLogDao {
 
   @Query("SELECT reviewedAt FROM review_log WHERE kind = 'SCHEDULED' ORDER BY reviewedAt DESC LIMIT 5000")
   abstract fun observeRecentTimes(): Flow<List<Instant>>
+
+  /** Cards reviewed since [since]; their siblings are buried for the rest of the day (PRD S6). */
+  @Query("SELECT DISTINCT cardId FROM review_log WHERE lang = :lang AND reviewedAt >= :since AND kind = 'SCHEDULED'")
+  abstract suspend fun cardsReviewedSince(lang: String, since: Instant): List<String>
+
+  /** Every scheduled review since [since], light rows for stats (PRD S12). */
+  @Query("SELECT lang, rating, reviewedAt, durationMs, beforeState FROM review_log WHERE reviewedAt >= :since AND kind = 'SCHEDULED'")
+  abstract suspend fun statRowsSince(since: Instant): List<StatRow>
+
+  @Query("SELECT MIN(reviewedAt) FROM review_log WHERE kind = 'SCHEDULED'")
+  abstract suspend fun firstReviewAt(): Instant?
 
   @Query("SELECT * FROM review_log WHERE cardId = :cardId ORDER BY reviewedAt")
   abstract suspend fun forCard(cardId: String): List<ReviewLogEntity>
@@ -180,4 +222,7 @@ interface PackDao {
   fun observeAll(): Flow<List<InstalledPackEntity>>
 
   @Upsert suspend fun upsert(pack: InstalledPackEntity)
+
+  @Query("DELETE FROM installed_pack WHERE lang = :lang AND id != :keep")
+  suspend fun deleteOthers(lang: String, keep: String)
 }

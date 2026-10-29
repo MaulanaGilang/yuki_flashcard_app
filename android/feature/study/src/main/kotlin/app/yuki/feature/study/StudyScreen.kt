@@ -76,7 +76,7 @@ import app.yuki.core.designsystem.component.LineBullet
 import app.yuki.core.designsystem.component.RatingBar
 import app.yuki.core.designsystem.component.StrokeCanvas
 import app.yuki.core.designsystem.component.StrokeGeometry
-import app.yuki.core.designsystem.component.StrokeOrderPanel
+import app.yuki.core.designsystem.component.HowToWrite
 import app.yuki.core.designsystem.component.rememberReduceMotion
 import app.yuki.core.designsystem.component.toneText
 import app.yuki.core.designsystem.component.HowToReadPanel
@@ -89,6 +89,7 @@ import app.yuki.core.designsystem.theme.YukiType
 import app.yuki.core.model.Hanzi
 import app.yuki.core.model.Mood
 import app.yuki.core.designsystem.component.YukiMascot
+import app.yuki.core.model.CardType
 import app.yuki.core.model.Lang
 import app.yuki.core.model.Rating
 import app.yuki.core.model.WordDetail
@@ -125,7 +126,7 @@ fun StudyScreen(viewModel: StudyViewModel, onClose: () -> Unit, onOpenWord: (Str
       StudyUiState.Loading -> Unit
       is StudyUiState.Empty -> EmptySession(s.lang, onClose)
       is StudyUiState.Studying -> StudyingContent(s.ui, viewModel, onClose)
-      is StudyUiState.Finished -> SummaryContent(s.summary, onClose, onOpenWord)
+      is StudyUiState.Finished -> SummaryContent(s.summary, onClose, onReviewMissed = viewModel::startExtraRound)
     }
   }
 }
@@ -150,9 +151,19 @@ private fun StudyingContent(ui: CardUi, vm: StudyViewModel, onClose: () -> Unit)
           onFlip = vm::flip,
           foil = ui.foil,
           tilt = { tilt.value },
-          accessibilityLabel = if (ui.flipped) "${ui.detail.word.headword}, ${ui.detail.gloss}. Double-tap to flip back"
-          else "${ui.detail.word.headword}, ${ui.detail.word.levelLabel}. Double-tap to flip",
-          front = { CardFront(ui, onPlay = vm::playWord) },
+          accessibilityLabel = when {
+            ui.flipped -> "${ui.detail.word.headword}, ${ui.detail.gloss}. Double-tap to flip back"
+            ui.direction == CardType.LISTENING -> "Listening card: say what you hear means. Double-tap to flip"
+            ui.direction == CardType.PRODUCTION -> "Say it in ${ui.card.lang.englishName}: ${ui.detail.gloss}. Double-tap to flip"
+            else -> "${ui.detail.word.headword}, ${ui.detail.word.levelLabel}. Double-tap to flip"
+          },
+          front = {
+            when (ui.direction) {
+              CardType.LISTENING -> ListeningFront(ui, onPlay = vm::playWord)
+              CardType.PRODUCTION -> ProductionFront(ui)
+              else -> CardFront(ui, onPlay = vm::playWord)
+            }
+          },
           back = { CardBack(ui, onPlayWord = vm::playWord, onPlaySentence = vm::playSentence) },
         )
       }
@@ -179,7 +190,8 @@ private fun StudyTopBar(ui: CardUi, onClose: () -> Unit, onUndo: () -> Unit) {
     Spacer(Modifier.width(4.dp))
     LineBullet(ui.detail.word.level.toString(), Color.White, size = 24.dp, onColor = Yuki.colors.line.field)
     Spacer(Modifier.width(8.dp))
-    Text("${ui.detail.word.levelLabel} · ${lang.englishName}".uppercase(), style = YukiType.station, color = Color.White, modifier = Modifier.weight(1f))
+    val title = if (ui.extraRound) "Review missed · ${lang.englishName}" else "${ui.detail.word.levelLabel} · ${lang.englishName}"
+    Text(title.uppercase(), style = YukiType.station, color = Color.White, modifier = Modifier.weight(1f))
     if (ui.canUndo) TextButton(onClick = onUndo) { Text("Undo", color = Color.White) }
     Text("${ui.position}/${ui.total}", color = Color.White, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(end = 8.dp))
   }
@@ -216,6 +228,48 @@ private fun ColumnScope.CardFront(ui: CardUi, onPlay: () -> Unit) {
     AudioButton(onPlay, enabled = ui.detail.wordAudio != null, contentDescription = "Play pronunciation")
     Spacer(Modifier.weight(1f))
     Text("NO. %04d".format(word.freqRank), style = YukiType.station, color = Yuki.colors.neutral.ink2)
+  }
+}
+
+/** Listening card (PRD S6): only the sound; the word and its meaning wait on the back. */
+@Composable
+private fun ColumnScope.ListeningFront(ui: CardUi, onPlay: () -> Unit) {
+  val c = Yuki.colors
+  CardHeader(ui.detail.word.level.toString(), "${ui.detail.word.levelLabel} · listening", ui.foil)
+  Column(Modifier.weight(1f).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+    Box(
+      Modifier
+        .size(112.dp)
+        .background(c.line.field, CircleShape)
+        .clickable(onClickLabel = "Play the word again", onClick = onPlay),
+      contentAlignment = Alignment.Center,
+    ) { Text("🔊", fontSize = 44.sp) }
+    Spacer(Modifier.height(20.dp))
+    Text("What does it mean?", style = MaterialTheme.typography.titleMedium, color = c.neutral.ink)
+    Text("Tap to hear it again", style = MaterialTheme.typography.bodySmall, color = c.neutral.ink2)
+  }
+}
+
+/** Production card (PRD S6): the meaning and picture; you recall the word, then flip to check. */
+@Composable
+private fun ColumnScope.ProductionFront(ui: CardUi) {
+  val c = Yuki.colors
+  val word = ui.detail.word
+  CardHeader(word.level.toString(), "${word.levelLabel} · say it", ui.foil)
+  ArtWindow(ui.art, Modifier.padding(top = 10.dp).weight(0.9f))
+  Column(Modifier.weight(1f).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+    Text(
+      ui.detail.senses.firstOrNull()?.gloss ?: ui.detail.gloss,
+      style = MaterialTheme.typography.headlineSmall.copy(fontFamily = app.yuki.core.designsystem.theme.Onest, fontWeight = FontWeight.Bold),
+      color = c.neutral.ink,
+      textAlign = TextAlign.Center,
+    )
+    if (word.pos.isNotBlank()) Text(word.pos, style = MaterialTheme.typography.bodyMedium, color = c.neutral.ink2)
+    Spacer(Modifier.height(10.dp))
+    Text(
+      if (word.lang == Lang.ZH) "Say it, then write it on paper" else "Say it in ${word.lang.englishName}",
+      style = MaterialTheme.typography.bodySmall, color = c.neutral.ink2,
+    )
   }
 }
 
@@ -320,10 +374,15 @@ private fun ColumnScope.CardBack(ui: CardUi, onPlayWord: () -> Unit, onPlaySente
     }
   }
   strokeSheet?.let { h ->
-    ModalBottomSheet(onDismissRequest = { strokeSheet = null }, containerColor = c.neutral.surface) {
-      Column(Modifier.padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text("How to write", style = MaterialTheme.typography.titleLarge, color = c.neutral.ink)
-        detail.characters.forEach { StrokeOrderPanel(it) }
+    var drawing by remember { mutableStateOf(false) }
+    ModalBottomSheet(
+      onDismissRequest = { strokeSheet = null },
+      containerColor = c.neutral.surface,
+      sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true),
+      sheetGesturesEnabled = !drawing,
+    ) {
+      Column(Modifier.padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 24.dp).verticalScroll(rememberScrollState(), enabled = !drawing)) {
+        HowToWrite(detail.characters, onPracticingChange = { drawing = it })
       }
     }
   }
@@ -347,7 +406,7 @@ private fun EmptySession(lang: Lang, onClose: () -> Unit) {
 }
 
 @Composable
-private fun SummaryContent(summary: SessionSummary, onClose: () -> Unit, onOpenWord: (String) -> Unit) {
+private fun SummaryContent(summary: SessionSummary, onClose: () -> Unit, onReviewMissed: () -> Unit) {
   Column(
     Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).padding(24.dp),
     verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -365,7 +424,19 @@ private fun SummaryContent(summary: SessionSummary, onClose: () -> Unit, onOpenW
       Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = 0.2f)))
       Text("Missed: " + summary.missed.joinToString(" · "), color = Color.White, style = if (summary.lang == Lang.ZH) YukiType.sentenceZh else MaterialTheme.typography.bodyLarge)
     }
+    if (summary.reviewedMissed) {
+      Text("Missed words reviewed. They come back on their normal schedule.", color = Color.White.copy(alpha = 0.85f), style = MaterialTheme.typography.bodyMedium)
+    }
     Spacer(Modifier.weight(1f))
+    if (summary.missed.isNotEmpty()) {
+      androidx.compose.material3.OutlinedButton(
+        onClick = onReviewMissed,
+        modifier = Modifier.fillMaxWidth().height(52.dp),
+        shape = CircleShape,
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, Color.White),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+      ) { Text(if (summary.missed.size == 1) "Review it again now" else "Review these ${summary.missed.size} now", style = MaterialTheme.typography.titleMedium) }
+    }
     Button(
       onClick = onClose,
       modifier = Modifier.fillMaxWidth().height(52.dp),

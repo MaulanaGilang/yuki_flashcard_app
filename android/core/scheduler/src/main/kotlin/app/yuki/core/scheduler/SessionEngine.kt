@@ -20,23 +20,34 @@ data class SessionPlan(
      * Picks today's cards from every non-suspended card of a language.
      * Reviews: due before the end of the study day, oldest first, capped at [maxReviews].
      * New: the next cards by `newRank`, up to the remaining new-card allowance for today.
+     *
+     * Siblings (other card directions of the same word, PRD S6) are buried: a word appears with
+     * one card per day. Cards in learning keep their word; a word whose card was already reviewed
+     * today ([reviewedToday] card ids) only continues with that same card.
      */
     fun build(
       cards: List<StudyCard>,
       endOfDay: Instant,
       maxReviews: Int,
       newAllowance: Int,
+      reviewedToday: Set<String> = emptySet(),
     ): SessionPlan {
-      val reviews = cards
-        .filter { (it.memory.state == CardState.REVIEW || it.memory.state == CardState.RELEARNING) && it.memory.due!! < endOfDay }
-        .sortedBy { it.memory.due }
-        .take(maxReviews)
+      val ownerToday = reviewedToday.associateBy { it.substringBefore('#') }
+      fun buried(card: StudyCard) = ownerToday[card.wordId].let { it != null && it != card.id }
+      val taken = HashSet<String>()
       val learning = cards
-        .filter { it.memory.state == CardState.LEARNING && it.memory.due!! < endOfDay }
+        .filter { it.memory.state == CardState.LEARNING && it.memory.due!! < endOfDay && !buried(it) }
         .sortedBy { it.memory.due }
+        .filter { taken.add(it.wordId) }
+      val reviews = cards
+        .filter { (it.memory.state == CardState.REVIEW || it.memory.state == CardState.RELEARNING) && it.memory.due!! < endOfDay && !buried(it) }
+        .sortedBy { it.memory.due }
+        .filter { taken.add(it.wordId) }
+        .take(maxReviews)
       val new = cards
-        .filter { it.memory.state == CardState.NEW }
+        .filter { it.memory.state == CardState.NEW && !buried(it) }
         .sortedBy { it.newRank }
+        .filter { taken.add(it.wordId) }
         .take(newAllowance.coerceAtLeast(0))
       return SessionPlan(reviews, learning, new)
     }

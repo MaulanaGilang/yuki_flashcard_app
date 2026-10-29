@@ -9,6 +9,7 @@ import app.yuki.core.data.repo.StudySession
 import app.yuki.core.designsystem.component.Art
 import app.yuki.core.designsystem.component.formatInterval
 import app.yuki.core.model.CardState
+import app.yuki.core.model.CardType
 import app.yuki.core.model.FoilTier
 import app.yuki.core.model.Lang
 import app.yuki.core.model.Rating
@@ -34,6 +35,10 @@ data class CardUi(
   val total: Int,
   val canUndo: Boolean,
   val showReadingOnFront: Boolean,
+  /** Which side faces you first: the card's direction, falling back to recognition without audio. */
+  val direction: CardType,
+  /** "Review these" round after the summary: ratings don't touch scheduling. */
+  val extraRound: Boolean = false,
 )
 
 data class SessionSummary(
@@ -44,6 +49,8 @@ data class SessionSummary(
   val minutes: Int,
   val newFoils: Int,
   val missed: List<String>,
+  /** The missed words were just gone through again in the extra round. */
+  val reviewedMissed: Boolean = false,
 )
 
 sealed interface StudyUiState {
@@ -76,6 +83,12 @@ class StudyViewModel(
   private val startedAt = clock.instant()
   private var showReadingOnFront = false
 
+  /** Extra round over the cards rated Again (PRD S7), or null outside it. */
+  private var extra: ArrayDeque<StudyCard>? = null
+  private var extraPosition = 0
+  private var extraTotal = 0
+  private var finished: SessionSummary? = null
+
   init {
     viewModelScope.launch {
       showReadingOnFront = repo.deckConfig(lang).showReadingOnFront
@@ -88,9 +101,15 @@ class StudyViewModel(
   private suspend fun showCurrent() {
     val s = session ?: return
     val now = clock.instant()
-    val card = s.engine.current(now)
+    val queue = extra
+    val card = if (queue != null) queue.firstOrNull() else s.engine.current(now)
     if (card == null) {
-      _state.value = StudyUiState.Finished(summary())
+      if (queue != null) {
+        extra = null
+        _state.value = StudyUiState.Finished(finished!!.copy(missed = emptyList(), reviewedMissed = true))
+      } else {
+        _state.value = StudyUiState.Finished(summary().also { finished = it })
+      }
       return
     }
     val detail = details[card.wordId] ?: repo.detail(card.wordId)?.also { details[card.wordId] = it }
@@ -99,7 +118,8 @@ class StudyViewModel(
       _state.value = StudyUiState.Finished(summary())
       return
     }
-    val previews = s.engine.preview(now).orEmpty().mapValues { (_, due) -> formatInterval(Duration.between(now, due).seconds) }
+    val previews = if (queue != null) emptyMap() else s.engine.preview(now).orEmpty().mapValues { (_, due) -> formatInterval(Duration.between(now, due).seconds) }
+    val direction = if (card.type == CardType.LISTENING && detail.wordAudio == null) CardType.RECOGNITION else card.type
     audio.preload(card.wordId, listOfNotNull(detail.wordAudio?.path) + detail.sentences.mapNotNull { it.audioPath })
     shownAt = now
     _state.value = StudyUiState.Studying(
@@ -110,12 +130,26 @@ class StudyViewModel(
         flipped = false,
         foil = FoilTier.of(card.memory),
         intervals = previews,
-        position = s.engine.answeredCount + 1,
-        total = s.engine.answeredCount + s.engine.remaining,
-        canUndo = answers.isNotEmpty(),
+        position = if (queue != null) extraPosition + 1 else s.engine.answeredCount + 1,
+        total = if (queue != null) extraTotal else s.engine.answeredCount + s.engine.remaining,
+        canUndo = queue == null && answers.isNotEmpty(),
         showReadingOnFront = showReadingOnFront,
+        direction = direction,
+        extraRound = queue != null,
       ),
     )
+    // Listening cards speak first: the word is only heard, never shown, until the flip.
+    if (direction == CardType.LISTENING) detail.wordAudio?.let { audio.play(card.wordId, it.path) }
+  }
+
+  /** "Review these now": one more pass over the words rated Again, without scheduling. */
+  fun startExtraRound() {
+    val missed = answers.map { it.first }.filter { it.rating == Rating.AGAIN }.map { it.card }.distinctBy { it.id }
+    if (missed.isEmpty()) return
+    extra = ArrayDeque(missed.shuffled())
+    extraPosition = 0
+    extraTotal = missed.size
+    viewModelScope.launch { showCurrent() }
   }
 
   private fun artFor(card: StudyCard, detail: WordDetail): Art {
@@ -135,6 +169,19 @@ class StudyViewModel(
     val s = session ?: return
     val current = (_state.value as? StudyUiState.Studying)?.ui ?: return
     if (!current.flipped) return
+    extra?.let { queue ->
+      viewModelScope.launch {
+        val now = clock.instant()
+        val card = queue.removeFirst()
+        repo.logExtra(s, card, rating, now, Duration.between(shownAt, now).toMillis())
+        // Again sends the card to the back of the round; anything else clears it.
+        if (rating == Rating.AGAIN) { queue.addLast(card); extraTotal++ }
+        extraPosition++
+        effects.send(StudyEffect.Rated(rating))
+        showCurrent()
+      }
+      return
+    }
     viewModelScope.launch {
       val now = clock.instant()
       val answer = s.engine.answer(rating, now)
@@ -147,6 +194,7 @@ class StudyViewModel(
 
   fun undo() {
     val s = session ?: return
+    if (extra != null) return
     val (_, logId) = answers.removeLastOrNull() ?: return
     viewModelScope.launch {
       val undone = s.engine.undo() ?: return@launch

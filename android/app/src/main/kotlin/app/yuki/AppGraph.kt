@@ -6,7 +6,9 @@ import app.yuki.core.data.backup.BackupManager
 import app.yuki.core.data.media.AudioPlayer
 import app.yuki.core.data.pack.PackRegistry
 import app.yuki.core.data.repo.ProgressRepository
+import app.yuki.core.data.repo.StatsRepository
 import app.yuki.core.data.repo.StudyRepository
+import app.yuki.core.data.settings.AppSettings
 import app.yuki.core.scheduler.StudyDay
 import java.time.Clock
 import java.time.ZoneId
@@ -21,8 +23,10 @@ class AppGraph(context: Context) {
   val database = DatabaseHolder(context)
   val packs = PackRegistry(context) { database.db }
   val audio = AudioPlayer(context, packs)
+  val settings = AppSettings(database)
   val study = StudyRepository(database, packs, clock, studyDay)
-  val progress = ProgressRepository(database, packs, study, clock, studyDay)
+  val progress = ProgressRepository(database, packs, study, clock, studyDay, settings)
+  val stats = StatsRepository(database, clock, studyDay)
   val backup = BackupManager(context, database, BuildConfig.VERSION_NAME)
 
   /** App-lifetime scope for fire-and-forget work such as widget refreshes. */

@@ -29,6 +29,10 @@ cd android
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
+**Signed release APK** (the one to put on the phone): `.\gradlew.bat :app:assembleRelease` writes `app\build\outputs\apk\release\app-release.apk`. It's signed with the local keystore `android/keystore/yuki-release.jks`, whose passwords are in `android/keystore.properties`. Both files are git-ignored. **Back them up**: Android only installs updates signed with the same key. Without `keystore.properties` the release build comes out unsigned.
+
+**CI:** `.github/workflows/android.yml` runs the unit tests and builds a debug APK on every push to `main` that touches `android/`. The APK is attached to the run.
+
 ## Content
 
 The APK currently bundles small **dev packs** (`android/app/src/main/assets/packs/{zh,es,ru,de,fr,ar}-dev`, about 120 words in total) so the app runs end to end. Rebuild them with:
@@ -38,3 +42,5 @@ pipeline\.venv\Scripts\python.exe pipeline\tools\build_dev_pack.py
 ```
 
 The real Mandarin HSK 1–6 pack comes from the pipeline (`packs/zh-hsk-1-6-v1`) and replaces `zh-dev`. Word ids use the same scheme, so progress carries over.
+
+To install a real pack without rebuilding the APK, copy its `.kpack` (from `packs/`) to the phone, then use **Settings › Content packs › Install a pack…**. Yuki checks every file against the manifest's SHA-256 and refuses unsafe zip paths. The pack then replaces the built-in one for that language.

@@ -1,6 +1,5 @@
 package app.yuki.core.designsystem.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -20,6 +19,8 @@ data class YukiColors(
   val again: Color,
   val isDark: Boolean,
 ) {
+  /** Correct-answer green (checkpoint quiz), the tone-3 green. */
+  val good: Color get() = tones[2]
   /** Background of drenched (study) screens. */
   val field: Color get() = if (isDark) line.nightField else line.field
   val artTint: Color get() = if (isDark) line.tintDark else line.tintLight
@@ -38,9 +39,10 @@ object Yuki {
 /**
  * App theme. The active language's line colour becomes Material's primary, so system
  * components (switches, dialogs, snackbars) follow the line (DESIGN-SYSTEM §2).
+ * Yuki is light-only by decision (2026-10-29); the dark palette stays for a later version.
  */
 @Composable
-fun YukiTheme(lang: Lang = Lang.ZH, darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+fun YukiTheme(lang: Lang = Lang.ZH, darkTheme: Boolean = false, content: @Composable () -> Unit) {
   val line = Lines.of(lang)
   val neutral = if (darkTheme) Neutrals.Dark else Neutrals.Light
   val primary = if (darkTheme) line.nightField else line.field

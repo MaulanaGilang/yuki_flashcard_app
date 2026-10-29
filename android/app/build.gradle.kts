@@ -1,7 +1,15 @@
+import java.util.Properties
+
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.compose.compiler)
   alias(libs.plugins.kotlin.serialization)
+}
+
+// Release signing from a local, git-ignored keystore.properties (see README). CI builds unsigned.
+val signing = Properties().apply {
+  val file = rootProject.file("keystore.properties")
+  if (file.exists()) file.inputStream().use { load(it) }
 }
 
 android {
@@ -16,8 +24,20 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
+  signingConfigs {
+    if (signing.getProperty("storeFile") != null) {
+      create("release") {
+        storeFile = rootProject.file(signing.getProperty("storeFile"))
+        storePassword = signing.getProperty("storePassword")
+        keyAlias = signing.getProperty("keyAlias")
+        keyPassword = signing.getProperty("keyPassword")
+      }
+    }
+  }
+
   buildTypes {
     release {
+      signingConfigs.findByName("release")?.let { signingConfig = it }
       isMinifyEnabled = true
       isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -55,6 +75,7 @@ dependencies {
 
   implementation(libs.androidx.compose.material.icons)
   implementation(libs.androidx.glance.appwidget)
+  implementation(libs.androidx.work.runtime)
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.activity.compose)

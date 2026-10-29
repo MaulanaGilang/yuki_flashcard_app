@@ -30,6 +30,21 @@ class SessionEngineTest {
   )
 
   @Test
+  fun buriesSiblingsOfTheSameWord() {
+    val recognition = reviewCard(1, 2).copy(id = "rw1#RECOGNITION")
+    val production = reviewCard(1, 1).copy(id = "rw1#PRODUCTION", type = CardType.PRODUCTION)
+    val listeningNew = newCard(1).copy(id = "rw1#LISTENING", wordId = "rw1", type = CardType.LISTENING)
+    val other = reviewCard(2, 1).copy(id = "rw2#RECOGNITION")
+    val plan = SessionPlan.build(listOf(recognition, production, listeningNew, other), endOfDay, 100, 10)
+    assertEquals(listOf("rw1#RECOGNITION", "rw2#RECOGNITION"), plan.reviews.map { it.id })
+    assertTrue(plan.new.isEmpty())
+
+    // Recognition of rw1 was already reviewed earlier today: its production sibling waits.
+    val later = SessionPlan.build(listOf(production, other), endOfDay, 100, 10, reviewedToday = setOf("rw1#RECOGNITION"))
+    assertEquals(listOf("rw2#RECOGNITION"), later.reviews.map { it.id })
+  }
+
+  @Test
   fun interleavesOneNewAfterFourReviews() {
     val order = SessionEngine.interleave((1..8).map { reviewCard(it, 1) }, (1..3).map { newCard(it) }).map { it.id }
     assertEquals(listOf("r1", "r2", "r3", "r4", "n1", "r5", "r6", "r7", "r8", "n2", "n3"), order)

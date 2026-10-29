@@ -152,4 +152,10 @@ data class DeckConfig(
   val relearningStepsSeconds: List<Long> = listOf(600),
   val showReadingOnFront: Boolean = false,
   val autoplayFront: Boolean = false,
-)
+  val listening: Boolean = false,
+  val production: Boolean = false,
+) {
+  /** Card directions studied in this language (PRD S6); recognition is always on. */
+  val cardTypes: List<CardType>
+    get() = listOfNotNull(CardType.RECOGNITION, CardType.LISTENING.takeIf { listening }, CardType.PRODUCTION.takeIf { production })
+}

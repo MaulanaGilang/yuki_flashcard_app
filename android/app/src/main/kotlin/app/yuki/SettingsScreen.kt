@@ -14,7 +14,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -84,6 +88,8 @@ fun SettingsScreen(graph: AppGraph) {
 
     packs.sortedBy { it.lang.ordinal }.forEach { pack -> DeckSettings(graph, pack.lang) }
 
+    ReminderSettings(graph)
+
     val context = androidx.compose.ui.platform.LocalContext.current
     Column(Modifier.fillMaxWidth().background(c.neutral.surface, RoundedCornerShape(20.dp)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
       SectionLabel("Home-screen widget")
@@ -121,7 +127,10 @@ fun SettingsScreen(graph: AppGraph) {
         OutlinedButton(onClick = { importLauncher.launch(arrayOf("*/*")) }, shape = CircleShape) { Text("Restore…") }
       }
       message?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = c.neutral.ink) }
+      AutoBackupSettings(graph)
     }
+
+    PackImport(graph)
 
     Column(Modifier.fillMaxWidth().background(c.neutral.surface, RoundedCornerShape(20.dp)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
       SectionLabel("About")
@@ -177,15 +186,149 @@ private fun DeckSettings(graph: AppGraph, lang: Lang) {
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
       Text("New cards per day", style = MaterialTheme.typography.bodyLarge, color = c.neutral.ink, modifier = Modifier.weight(1f))
-      TextButton(onClick = { save(cfg.copy(newPerDay = (cfg.newPerDay - 5).coerceAtLeast(0))) }) { Text("−") }
+      TextButton(onClick = { save(cfg.copy(newPerDay = (cfg.newPerDay - 5).coerceAtLeast(0))) }, modifier = Modifier.semantics { contentDescription = "Fewer new cards" }) { Text("−") }
       Text("${cfg.newPerDay}", style = MaterialTheme.typography.titleMedium, color = c.neutral.ink)
-      TextButton(onClick = { save(cfg.copy(newPerDay = (cfg.newPerDay + 5).coerceAtMost(50))) }) { Text("+") }
+      TextButton(onClick = { save(cfg.copy(newPerDay = (cfg.newPerDay + 5).coerceAtMost(50))) }, modifier = Modifier.semantics { contentDescription = "More new cards" }) { Text("+") }
     }
     if (lang == Lang.ZH || lang.needsTransliteration) {
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(if (lang == Lang.ZH) "Show pinyin on the front" else "Show Latin letters on the front", style = MaterialTheme.typography.bodyLarge, color = c.neutral.ink, modifier = Modifier.weight(1f))
-        Switch(checked = cfg.showReadingOnFront, onCheckedChange = { save(cfg.copy(showReadingOnFront = it)) })
+      ToggleRow(
+        if (lang == Lang.ZH) "Show pinyin on the front" else "Show Latin letters on the front",
+        "Easier, but you practise reading less",
+        cfg.showReadingOnFront,
+      ) { save(cfg.copy(showReadingOnFront = it)) }
+    }
+    ToggleRow("Listening cards", "Hear the word, recall its meaning", cfg.listening) { save(cfg.copy(listening = it)) }
+    ToggleRow("Production cards", "See the meaning, recall the ${lang.englishName} word", cfg.production) { save(cfg.copy(production = it)) }
+  }
+}
+
+@Composable
+private fun ToggleRow(title: String, subtitle: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+  val c = Yuki.colors
+  // The whole row is one switch for TalkBack: title and subtitle read as its label.
+  Row(
+    Modifier
+      .fillMaxWidth()
+      .toggleable(value = checked, role = Role.Switch, onValueChange = onChange)
+      .padding(vertical = 4.dp),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Column(Modifier.weight(1f)) {
+      Text(title, style = MaterialTheme.typography.bodyLarge, color = c.neutral.ink)
+      Text(subtitle, style = MaterialTheme.typography.bodySmall, color = c.neutral.ink2)
+    }
+    Switch(checked = checked, onCheckedChange = null)
+  }
+}
+
+/** Daily reminder (PRD S13). Asks for the notification permission only when switched on. */
+@Composable
+private fun ReminderSettings(graph: AppGraph) {
+  val c = Yuki.colors
+  val context = androidx.compose.ui.platform.LocalContext.current
+  val scope = rememberCoroutineScope()
+  var time by remember { mutableStateOf<java.time.LocalTime?>(null) }
+  var loaded by remember { mutableStateOf(false) }
+  LaunchedEffect(Unit) { time = graph.settings.reminderTime(); loaded = true }
+  val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+  fun set(t: java.time.LocalTime?) {
+    time = t
+    scope.launch { graph.settings.setReminderTime(t) }
+    app.yuki.reminder.Reminders.schedule(context, t)
+    if (t != null && android.os.Build.VERSION.SDK_INT >= 33 && !app.yuki.reminder.Reminders.canNotify(context)) {
+      permission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+    }
+  }
+  if (!loaded) return
+  Column(Modifier.fillMaxWidth().background(c.neutral.surface, RoundedCornerShape(20.dp)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    SectionLabel("Daily reminder")
+    ToggleRow("Remind me", "Only on days with cards waiting and no study yet", time != null) { on -> set(if (on) java.time.LocalTime.of(19, 0) else null) }
+    time?.let { current ->
+      androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        listOf(7 to 30, 12 to 0, 19 to 0, 21 to 0).map { (h, m) -> java.time.LocalTime.of(h, m) }.forEach { t ->
+          androidx.compose.material3.FilterChip(selected = current == t, onClick = { set(t) }, label = { Text(t.toString()) })
+        }
       }
     }
+  }
+}
+
+/** Automatic weekly backup into a folder picked once (ARCHITECTURE §2.9). */
+@Composable
+private fun AutoBackupSettings(graph: AppGraph) {
+  val c = Yuki.colors
+  val context = androidx.compose.ui.platform.LocalContext.current
+  val scope = rememberCoroutineScope()
+  var folder by remember { mutableStateOf<String?>(null) }
+  var last by remember { mutableStateOf<java.time.Instant?>(null) }
+  var note by remember { mutableStateOf<String?>(null) }
+  LaunchedEffect(Unit) { folder = graph.settings.autoBackupFolder(); last = graph.settings.lastAutoBackup() }
+  val pick = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+    if (uri != null) scope.launch {
+      runCatching {
+        context.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        graph.settings.setAutoBackupFolder(uri.toString())
+        app.yuki.backup.AutoBackup.runOnce(context, uri)
+      }.fold(
+        { cards ->
+          folder = uri.toString(); last = graph.settings.lastAutoBackup()
+          app.yuki.backup.AutoBackup.schedule(context, true)
+          note = "First automatic backup saved ($cards cards). Next one in a week."
+        },
+        { note = "Couldn't use that folder: ${it.message}" },
+      )
+    }
+  }
+  ToggleRow("Back up every week", folder?.let { "To ${android.net.Uri.parse(it).lastPathSegment?.substringAfter(':') ?: "your folder"}, keeps the last 4" } ?: "Pick a folder once, e.g. Google Drive or Downloads", folder != null) { on ->
+    if (on) pick.launch(null) else scope.launch {
+      graph.settings.setAutoBackupFolder(null)
+      app.yuki.backup.AutoBackup.schedule(context, false)
+      folder = null
+      note = null
+    }
+  }
+  last?.let {
+    val local = it.atZone(java.time.ZoneId.systemDefault())
+    Text("Last automatic backup: ${local.toLocalDate()} ${local.toLocalTime().withNano(0).withSecond(0)}", style = MaterialTheme.typography.bodySmall, color = c.neutral.ink2)
+  }
+  note?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = c.neutral.ink) }
+}
+
+/** Installs a content pack from a `.kpack` file (ARCHITECTURE §2.4). Progress is kept. */
+@Composable
+private fun PackImport(graph: AppGraph) {
+  val c = Yuki.colors
+  val context = androidx.compose.ui.platform.LocalContext.current
+  val scope = rememberCoroutineScope()
+  var busy by remember { mutableStateOf(false) }
+  var note by remember { mutableStateOf<String?>(null) }
+  val pick = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    if (uri != null) scope.launch {
+      busy = true
+      note = "Checking the pack…"
+      note = try {
+        val m = context.contentResolver.openInputStream(uri)!!.use { graph.packs.import(it) }
+        "Installed ${m.title} (version ${m.version}). Your progress is kept."
+      } catch (e: app.yuki.core.data.pack.PackImportException) {
+        when (val err = e.error) {
+          app.yuki.core.data.pack.ImportError.NotAPack -> "That file isn't a Yuki pack (.kpack)."
+          app.yuki.core.data.pack.ImportError.UnsafeArchive -> "That file looks unsafe, so it wasn't installed."
+          is app.yuki.core.data.pack.ImportError.Damaged -> "The pack is damaged (${err.file}). Copy it again and retry."
+          is app.yuki.core.data.pack.ImportError.UnknownLanguage -> "This pack is for a language Yuki doesn't know yet (${err.code})."
+        }
+      } catch (e: Exception) {
+        "Couldn't install the pack: ${e.message}"
+      }
+      busy = false
+    }
+  }
+  Column(Modifier.fillMaxWidth().background(c.neutral.surface, RoundedCornerShape(20.dp)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    SectionLabel("Content packs")
+    graph.packs.packs.collectAsStateWithLifecycle().value.sortedBy { it.lang.ordinal }.forEach { p ->
+      Text("${p.lang.englishName}: ${p.entity.id} v${p.entity.version}" + if (p.entity.assetDir != null) " (built in)" else "", style = MaterialTheme.typography.bodyMedium, color = c.neutral.ink)
+    }
+    Text("Copy a .kpack file to the phone, then install it here. It replaces that language's pack and keeps your progress.", style = MaterialTheme.typography.bodySmall, color = c.neutral.ink2)
+    OutlinedButton(onClick = { pick.launch(arrayOf("*/*")) }, enabled = !busy, shape = CircleShape) { Text("Install a pack…") }
+    note?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = c.neutral.ink) }
   }
 }

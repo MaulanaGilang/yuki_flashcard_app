@@ -3,6 +3,7 @@ package app.yuki.core.data.repo
 import app.yuki.core.data.DatabaseHolder
 import app.yuki.core.data.db.CardStatusRow
 import app.yuki.core.data.pack.PackRegistry
+import app.yuki.core.data.settings.AppSettings
 import app.yuki.core.model.CardState
 import app.yuki.core.model.FoilTier
 import app.yuki.core.model.Lang
@@ -62,9 +63,13 @@ class ProgressRepository(
   private val study: StudyRepository,
   private val clock: Clock,
   private val studyDay: () -> StudyDay,
+  private val settings: AppSettings,
 ) {
-  fun observeLines(): Flow<List<LineSummary>> = combine(packs.packs, holder.version) { installed, _ -> installed }
-    .flatMapLatest { installed ->
+  /** Lines on Today: installed packs, limited to the languages picked in onboarding. */
+  fun observeLines(): Flow<List<LineSummary>> = combine(packs.packs, holder.version, settings.changes, study.configChanges) { installed, _, _, _ -> installed }
+    .flatMapLatest { all ->
+      val active = settings.activeLangs()
+      val installed = if (active == null) all else all.filter { it.lang in active }
       if (installed.isEmpty()) return@flatMapLatest flowOf(emptyList())
       val now = clock.instant()
       val day = studyDay()
@@ -73,9 +78,10 @@ class ProgressRepository(
         val keys = pack.reader.wordKeys().associate { it.id to it.level }
         val labels = pack.reader.levels()
         val db = holder.db
+        val types = study.deckConfig(lang).typeNames
         combine(
           db.cardDao().observeStatuses(lang.code),
-          db.cardDao().observeDueCount(lang.code, day.end(now)),
+          db.cardDao().observeDueCount(lang.code, day.end(now), types),
           db.reviewLogDao().observeIntroducedSince(lang.code, day.start(now)),
           db.reviewLogDao().observeMatureRatings(lang.code, now.minus(java.time.Duration.ofDays(30))),
         ) { statuses, due, introduced, ratings ->
@@ -125,7 +131,7 @@ class ProgressRepository(
     val due = packs.packs.value.sumOf { p ->
       val pace = study.pace(p.lang)
       val introduced = db.reviewLogDao().introducedSince(p.lang.code, day.start(now))
-      db.cardDao().dueCount(p.lang.code, day.end(now)) + (pace.newCards - introduced).coerceAtLeast(0)
+      db.cardDao().dueCount(p.lang.code, day.end(now), study.deckConfig(p.lang).typeNames) + (pace.newCards - introduced).coerceAtLeast(0)
     }
     return app.yuki.core.model.DayStatus(
       streak = streak(db.reviewLogDao().recentTimes(), day, now),
@@ -147,6 +153,9 @@ class ProgressRepository(
     val pack = packs.pack(lang) ?: return emptyList()
     return rows(pack.reader.search(query), lang)
   }
+
+  /** Any review ever logged (an existing user skips onboarding). */
+  suspend fun hasHistory(): Boolean = holder.db.reviewLogDao().count() > 0
 
   suspend fun levels(lang: Lang) = packs.pack(lang)?.reader?.levels().orEmpty()
 

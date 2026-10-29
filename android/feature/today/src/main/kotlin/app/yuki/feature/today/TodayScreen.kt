@@ -80,7 +80,12 @@ class TodayViewModel(progress: ProgressRepository) : ViewModel() {
 }
 
 @Composable
-fun TodayScreen(viewModel: TodayViewModel, contentPadding: PaddingValues, onStart: (Lang) -> Unit) {
+fun TodayScreen(
+  viewModel: TodayViewModel,
+  contentPadding: PaddingValues,
+  onStart: (Lang) -> Unit,
+  onCheckpoint: (Lang, Int, String) -> Unit = { _, _, _ -> },
+) {
   val state by viewModel.state.collectAsStateWithLifecycle()
   val c = Yuki.colors
   LazyColumn(
@@ -116,7 +121,9 @@ fun TodayScreen(viewModel: TodayViewModel, contentPadding: PaddingValues, onStar
         )
       }
     }
-    items(state.lines, key = { it.lang.code }) { line -> LineCard(line, onStart = { onStart(line.lang) }) }
+    items(state.lines, key = { it.lang.code }) { line ->
+      LineCard(line, onStart = { onStart(line.lang) }, onCheckpoint = { lvl -> onCheckpoint(line.lang, lvl.level, lvl.label) })
+    }
   }
 }
 
@@ -139,7 +146,7 @@ private fun StreakChip(streak: Int, studiedToday: Boolean) {
 }
 
 @Composable
-private fun LineCard(line: LineSummary, onStart: () -> Unit) {
+private fun LineCard(line: LineSummary, onStart: () -> Unit, onCheckpoint: (app.yuki.core.data.repo.LevelProgress) -> Unit) {
   val c = Yuki.colors
   val color = Lines.of(line.lang).let { if (c.isDark) it.nightField else it.field }
   val current = line.currentLevel
@@ -203,6 +210,11 @@ private fun LineCard(line: LineSummary, onStart: () -> Unit) {
     ) {
       val minutes = ((line.dueToday * 8 + line.newToday * 20) / 60).coerceAtLeast(1)
       Text(if (work > 0) "Start · ~$minutes min" else "All caught up", style = MaterialTheme.typography.titleSmall)
+    }
+    current?.takeIf { it.state == StationState.NOT_STARTED || it.state == StationState.RIDING }?.let { lvl ->
+      androidx.compose.material3.TextButton(onClick = { onCheckpoint(lvl) }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+        Text("Already know ${lvl.label}? Take the checkpoint", style = MaterialTheme.typography.labelLarge, color = color)
+      }
     }
   }
 }

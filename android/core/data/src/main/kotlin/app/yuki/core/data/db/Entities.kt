@@ -1,5 +1,6 @@
 package app.yuki.core.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -91,6 +92,9 @@ data class DeckConfigEntity(
   val showReadingOnFront: Boolean = false,
   val autoplayFront: Boolean = false,
   val fsrsParams: String? = null,
+  /** Extra card directions (PRD S6), off by default. Added in schema 2. */
+  @ColumnInfo(defaultValue = "0") val listening: Boolean = false,
+  @ColumnInfo(defaultValue = "0") val production: Boolean = false,
 )
 
 @Entity(tableName = "app_settings")

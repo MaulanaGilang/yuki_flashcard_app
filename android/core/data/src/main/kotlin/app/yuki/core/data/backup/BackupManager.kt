@@ -141,7 +141,7 @@ class BackupManager(
 
   companion object {
     /** Must equal ProgressDatabase version. */
-    const val SCHEMA_VERSION = 1
+    const val SCHEMA_VERSION = 2
     private const val MANIFEST = "manifest.json"
     private const val SNAPSHOT = "progress.db"
   }

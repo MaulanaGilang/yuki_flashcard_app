@@ -311,7 +311,7 @@ Styled like a station departures/arrivals board: Unbounded figures on the line's
   - Celebrate: two hops of 12 % of her height.
   - Tap: one small hop.
 - **Streak widget:** warm off-white ground (`#FFF4EE` / night `#231915`), flame and count in Persimmon once today is done (grey before), message in `ink.secondary`.
-- **App icon:** Yuki's face on Persimmon, shoulders bleeding off the bottom edge. The 512 px store icon is in `design/logo/`.
+- **App icon:** a flat snowflake (雪, *yuki*) in warm white `#FFF8F3` on Persimmon, with rounded strokes, a one-step-darker sticker drop (`#A82A16`, 2 units down) and a Persimmon dot at the centre. It sits inside the 66-unit safe circle, so OEM masks never clip it, and it doubles as the Android 13 monochrome icon. A single script, `pipeline/tools/logo_snowflake.py`, writes the launcher vector, `design/logo/yuki-logo.svg` and the 512 px PNG. Yuki herself appears in the app and widgets, not in the icon.
 
 ## 6. Screens (blueprint)
 

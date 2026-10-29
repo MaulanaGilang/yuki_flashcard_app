@@ -290,9 +290,9 @@ The app has no AI at runtime. AI is used **offline at build time** to produce co
 |---|---|---|---|---|
 | ТЭУ (элементарный) | A1 | 780 | University course file (docx), found online | Free |
 | ТБУ (базовый) | A2 | 1,300 | PDF, found online | Free |
-| ТРКИ-1 (первый сертификационный) | B1 | 2,300 | Published book only (Андрюшина et al.); no free copy found | Ebook purchase *(optional, one-time, well under the cap)*, or use a CEFR-graded frequency list for B1 |
+| ТРКИ-1 (первый сертификационный) | B1 | 2,300 | Published book only (Андрюшина et al.); no free copy found | **Decided (2026-10-29): a free CEFR-graded frequency list for B1.** The ebook stays an option if the list proves weak |
 | ТРКИ-2 (второй сертификационный) | B2 | ≈ 5,100 | PDF (5th ed., 2014), found online; needs OCR/clean-up | Free |
-| ТРКИ-3 (третий сертификационный) | C1 | size to verify | No free copy found yet | Search again during v1.3 prep; otherwise use a CEFR-graded frequency list for C1 (free) |
+| ТРКИ-3 (третий сертификационный) | C1 | size to verify | No free copy found yet | **Decided: a free frequency list for C1** (the next band after B2), unless a free ТРКИ-3 list turns up during v1.3 prep |
 | ТРКИ-4 | C2 | — | Not needed until v2 | — |
 
 There is no single HSK-equivalent exam for Spanish, Russian or English, but each has a CEFR-aligned national standard. The table above uses the closest equivalents.
@@ -509,7 +509,7 @@ Resolved in v0.2:
 
 Still open:
 1. **TTS winner:** picked after the blind listening test in M0.
-2. **ТРКИ-1 (B1) source:** frequency list (free) vs the official ebook (small one-time cost). Decide during v1.3 prep.
+2. ~~**ТРКИ-1 (B1) source**~~ Decided 2026-10-29: a free frequency list for B1 (and for C1).
 
 ### 5.4 If this ever goes public
 Before any public release:

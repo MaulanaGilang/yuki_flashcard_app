@@ -36,20 +36,65 @@ import app.yuki.feature.study.StudyScreen
 import app.yuki.feature.study.StudyViewModel
 import app.yuki.feature.today.TodayScreen
 import app.yuki.feature.today.TodayViewModel
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import app.yuki.feature.study.CheckpointScreen
+import app.yuki.feature.study.CheckpointViewModel
+import app.yuki.feature.today.OnboardingScreen
+import app.yuki.feature.today.OnboardingViewModel
+import app.yuki.feature.today.StatsScreen
+import app.yuki.feature.today.StatsViewModel
+import app.yuki.reminder.Reminders
 import kotlinx.serialization.Serializable
 
 @Serializable data object TodayKey : NavKey
 @Serializable data object LibraryKey : NavKey
 @Serializable data object SettingsKey : NavKey
+@Serializable data object StatsKey : NavKey
+@Serializable data class CheckpointKey(val lang: String, val level: Int, val label: String) : NavKey
 @Serializable data class StudyKey(val lang: String) : NavKey
 @Serializable data class WordKey(val wordId: String) : NavKey
 @Serializable data class AlphabetKey(val lang: String) : NavKey
 
-private val topLevel = listOf<Pair<NavKey, String>>(TodayKey to "Today", LibraryKey to "Library", SettingsKey to "Settings")
-private val topLevelIcons = mapOf<NavKey, ImageVector>(TodayKey to Icons.Filled.Home, LibraryKey to Icons.AutoMirrored.Filled.List, SettingsKey to Icons.Filled.Settings)
+private val topLevel = listOf<Pair<NavKey, String>>(TodayKey to "Today", LibraryKey to "Library", StatsKey to "Stats", SettingsKey to "Settings")
+private val topLevelIcons = mapOf<NavKey, ImageVector>(
+  TodayKey to Icons.Filled.Home, LibraryKey to Icons.AutoMirrored.Filled.List, StatsKey to Icons.Filled.DateRange, SettingsKey to Icons.Filled.Settings,
+)
 
 @Composable
 fun YukiNavigation(graph: AppGraph, openWord: String? = null, onWordOpened: () -> Unit = {}) {
+  val context = LocalContext.current
+  // First run goes through onboarding (PRD S10); anyone with study history is already set up.
+  var onboarded by remember { mutableStateOf<Boolean?>(null) }
+  LaunchedEffect(Unit) {
+    val done = graph.settings.onboarded() || graph.progress.hasHistory()
+    if (done) graph.settings.setOnboarded()
+    onboarded = done
+  }
+  val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+  when (onboarded) {
+    null -> return
+    false -> {
+      val vm = viewModel { OnboardingViewModel(graph.packs, graph.study, graph.settings) }
+      OnboardingScreen(vm, onFinished = { time ->
+        Reminders.schedule(context, time)
+        if (time != null && Build.VERSION.SDK_INT >= 33 && !Reminders.canNotify(context)) {
+          notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        onboarded = true
+      })
+      return
+    }
+    true -> Unit
+  }
   val backStack = rememberNavBackStack(TodayKey)
   // Tapping the home-screen widget opens that word on top of Today.
   LaunchedEffect(openWord) {
@@ -59,7 +104,7 @@ fun YukiNavigation(graph: AppGraph, openWord: String? = null, onWordOpened: () -
     }
   }
   val current = backStack.lastOrNull()
-  val showBar = current == TodayKey || current == LibraryKey || current == SettingsKey
+  val showBar = current == TodayKey || current == LibraryKey || current == StatsKey || current == SettingsKey
 
   Scaffold(
     bottomBar = {
@@ -91,7 +136,22 @@ fun YukiNavigation(graph: AppGraph, openWord: String? = null, onWordOpened: () -
       entryProvider = entryProvider {
         entry<TodayKey> {
           val vm = viewModel { TodayViewModel(graph.progress) }
-          TodayScreen(vm, padding, onStart = { lang -> backStack.add(StudyKey(lang.code)) })
+          TodayScreen(
+            vm, padding,
+            onStart = { lang -> backStack.add(StudyKey(lang.code)) },
+            onCheckpoint = { lang, level, label -> backStack.add(CheckpointKey(lang.code, level, label)) },
+          )
+        }
+        entry<StatsKey> {
+          val vm = viewModel { StatsViewModel(graph.stats, graph.progress) }
+          StatsScreen(vm, padding)
+        }
+        entry<CheckpointKey> { key ->
+          val lang = Lang.fromCode(key.lang)
+          YukiTheme(lang) {
+            val vm = viewModel { CheckpointViewModel(lang, key.level, graph.study) }
+            CheckpointScreen(vm, key.label, onClose = { backStack.removeLastOrNull() })
+          }
         }
         entry<LibraryKey> {
           val vm = viewModel { LibraryViewModel(graph.progress, graph.packs) }
