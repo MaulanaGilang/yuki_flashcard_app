@@ -331,7 +331,7 @@ private fun ColumnScope.CardBack(ui: CardUi, onPlayWord: () -> Unit, onPlaySente
         color = c.neutral.ink,
       )
     }
-    val chips = listOfNotNull(word.measureWord?.let { "量 $it" }, word.gender)
+    val chips = word.chips
     if (chips.isNotEmpty()) {
       FlowRow(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) { chips.forEach { GrammarChip(it) } }
     }

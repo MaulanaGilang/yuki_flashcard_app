@@ -136,9 +136,12 @@ fun SettingsScreen(graph: AppGraph) {
       SectionLabel("About")
       Text("Yuki ${BuildConfig.VERSION_NAME} · works fully offline", style = MaterialTheme.typography.bodyMedium, color = c.neutral.ink)
       Text(
-        "Word lists: HSK 3.0. Dictionary: CC-CEDICT (CC BY-SA 4.0). Sentences: Tatoeba (CC BY 2.0 FR). Stroke data: Make Me a Hanzi (Arphic Public License). Fonts: Onest, Unbounded, LXGW WenKai GB (SIL OFL).",
+        "Fonts: Onest, Unbounded, LXGW WenKai GB, Noto Naskh Arabic (SIL OFL). Each content pack lists its own word lists, dictionaries, sentences, recordings and pictures.",
         style = MaterialTheme.typography.bodySmall, color = c.neutral.ink2,
       )
+      var showCredits by remember { mutableStateOf(false) }
+      TextButton(onClick = { showCredits = true }, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) { Text("Credits & licences") }
+      if (showCredits) CreditsSheet(graph, onDismiss = { showCredits = false })
     }
   }
 
@@ -330,5 +333,49 @@ private fun PackImport(graph: AppGraph) {
     Text("Copy a .kpack file to the phone, then install it here. It replaces that language's pack and keeps your progress.", style = MaterialTheme.typography.bodySmall, color = c.neutral.ink2)
     OutlinedButton(onClick = { pick.launch(arrayOf("*/*")) }, enabled = !busy, shape = CircleShape) { Text("Install a pack…") }
     note?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = c.neutral.ink) }
+  }
+}
+private data class PackCredits(val title: String, val sources: List<app.yuki.core.data.pack.PackSource>, val assets: List<Triple<String, String, Int>>)
+
+/** Attribution for every installed pack: upstream datasets, then where pictures and recordings come from. */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun CreditsSheet(graph: AppGraph, onDismiss: () -> Unit) {
+  val c = Yuki.colors
+  var credits by remember { mutableStateOf<List<PackCredits>?>(null) }
+  LaunchedEffect(Unit) {
+    graph.packs.awaitReady()
+    credits = graph.packs.packs.value.sortedBy { it.lang.ordinal }.map { p ->
+      val m = graph.packs.manifest(p)
+      PackCredits(m?.title ?: p.entity.id, m?.sources.orEmpty(), runCatching { p.reader.assetCredits() }.getOrDefault(emptyList()))
+    }
+  }
+  androidx.compose.material3.ModalBottomSheet(onDismissRequest = onDismiss, containerColor = c.neutral.surface) {
+    Column(
+      Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 32.dp),
+      verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+      Text("Credits & licences", style = MaterialTheme.typography.titleLarge, color = c.neutral.ink)
+      Text(
+        "Yuki is a personal, non-commercial app. Content is used under the licences below; share-alike content keeps its licence.",
+        style = MaterialTheme.typography.bodySmall, color = c.neutral.ink2,
+      )
+      credits?.forEach { pack ->
+        SectionLabel(pack.title)
+        pack.sources.forEach { s ->
+          Text("${s.name} · ${s.license}", style = MaterialTheme.typography.bodyMedium, color = c.neutral.ink)
+          s.url?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = c.neutral.ink2) }
+        }
+        if (pack.assets.isNotEmpty()) {
+          Text("Pictures and recordings", style = MaterialTheme.typography.labelLarge, color = c.neutral.ink2)
+          pack.assets.forEach { (source, license, n) ->
+            Text("$source · $license · $n", style = MaterialTheme.typography.bodySmall, color = c.neutral.ink)
+          }
+        }
+        if (pack.sources.isEmpty() && pack.assets.isEmpty()) {
+          Text("Built-in sample pack.", style = MaterialTheme.typography.bodySmall, color = c.neutral.ink2)
+        }
+      }
+    }
   }
 }

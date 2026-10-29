@@ -151,6 +151,13 @@ class PackReader(val packId: String, val lang: Lang, dbPath: String) : Closeable
     WordDetail(word, senses, sentences, audio, image, characters)
   }
 
+  /** Where the pack's pictures and recordings come from: (source, licence, count), biggest first. */
+  suspend fun assetCredits(): List<Triple<String, String, Int>> = read { c ->
+    c.prepare("SELECT source, license, COUNT(*) FROM asset GROUP BY source, license ORDER BY COUNT(*) DESC").use { s ->
+      buildList { while (s.step()) add(Triple(s.getText(0), s.getText(1), s.getLong(2).toInt())) }
+    }
+  }
+
   suspend fun hanzi(ch: String): Hanzi? = read { c -> readHanzi(c, ch) }
 
   private fun readHanzi(c: SQLiteConnection, ch: String): Hanzi? =
@@ -182,6 +189,7 @@ class PackReader(val packId: String, val lang: Lang, dbPath: String) : Closeable
       tones = (extra?.get("tones") as? JsonArray)?.map { it.jsonPrimitive.int }.orEmpty(),
       measureWord = extra?.get("measure_word")?.jsonPrimitive?.content,
       gender = extra?.get("gender")?.jsonPrimitive?.content,
+      grammar = (extra?.get("grammar") as? JsonArray)?.map { it.jsonPrimitive.content }.orEmpty(),
     )
   }
 

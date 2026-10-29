@@ -24,6 +24,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 @Serializable
+data class PackSource(val name: String, val url: String? = null, val license: String)
+
+@Serializable
 data class PackManifest(
   val id: String,
   val lang: String,
@@ -31,6 +34,8 @@ data class PackManifest(
   val title: String = id,
   /** Relative path → SHA-256 of every file in the pack (pipeline `package` step). */
   val files: Map<String, String> = emptyMap(),
+  /** Upstream datasets and their licences (pipeline `package` step), for the credits screen. */
+  val sources: List<PackSource> = emptyList(),
 )
 
 /** An opened, installed pack: its reader plus where its media lives. */
@@ -221,6 +226,11 @@ class PackRegistry(private val context: Context, private val db: () -> ProgressD
     if (assetDir != null) context.assets.open("$assetDir/$relativePath").use { it.readBytes() }
     else File(File(pack.entity.path).parentFile, relativePath).readBytes()
   }.getOrNull()
+
+  /** The installed pack's manifest (credits, version), or null if it can't be read. */
+  fun manifest(pack: InstalledPack): PackManifest? = readMediaBytes(pack, "manifest.json")?.let { bytes ->
+    runCatching { json.decodeFromString(PackManifest.serializer(), bytes.decodeToString()) }.getOrNull()
+  }
 
   fun closeAll() {
     _packs.value.forEach { it.reader.close() }

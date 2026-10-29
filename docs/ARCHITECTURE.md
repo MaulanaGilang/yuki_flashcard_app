@@ -147,6 +147,11 @@ asset(word_id TEXT, kind TEXT,  -- 'word_audio' | 'image'
 hanzi(ch TEXT PRIMARY KEY, stroke_count INTEGER, radical TEXT, strokes_json TEXT, medians_json TEXT)
 CREATE INDEX word_level ON word(level, freq_rank);
 CREATE INDEX word_search ON word(search_key);
+-- Child-table lookups by word (added 2026-10-29). On an 8,000-word pack, card open drops
+-- from 14 ms to 1.7 ms (core/data PackPerformanceTest).
+CREATE INDEX sense_word ON sense(word_id, ord);
+CREATE INDEX sentence_word ON sentence(word_id, ord);
+CREATE INDEX asset_word ON asset(word_id);
 ```
 
 - **Stable word IDs** are the key to upgrades. A new pack version keeps IDs, so your progress carries over. A word removed in a newer pack keeps its card, hidden; cards are never deleted.

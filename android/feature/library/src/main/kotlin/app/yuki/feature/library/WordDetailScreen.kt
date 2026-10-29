@@ -151,7 +151,7 @@ fun WordDetailScreen(viewModel: WordDetailViewModel, onBack: () -> Unit) {
     Column(Modifier.fillMaxWidth().background(c.neutral.surface, RoundedCornerShape(24.dp)).padding(20.dp)) {
       SectionLabel("Meaning")
       detail.senses.forEach { s -> Text("${s.pos}  ${s.gloss}".trim(), style = MaterialTheme.typography.bodyLarge, color = c.neutral.ink, modifier = Modifier.padding(top = 4.dp)) }
-      val chips = listOfNotNull(word.measureWord?.let { "量 $it" }, word.gender)
+      val chips = word.chips
       if (chips.isNotEmpty()) FlowRow(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) { chips.forEach { GrammarChip(it) } }
       if (detail.sentences.isNotEmpty()) {
         CardDivider()

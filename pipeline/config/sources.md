@@ -26,6 +26,25 @@ Checked 2026-10-29. All sources are free. Licences are noted because every pack 
 
 Pick the final voice with a short listening check: 20 words and 5 sentences per voice.
 
+## What the app reads from each word (pack contract)
+
+`word.headword` is what the card shows big:
+- **es, fr:** nouns carry their article, e.g. `el libro`, `la manzana`, `l'eau (f.)` → `l'eau`.
+- **de:** nouns carry their article, e.g. `der Hund`.
+- **ru:** stress mark U+0301 on the stressed vowel, e.g. `молоко́`; `search_key` drops it.
+- **ar:** fully vowelled.
+
+`word.extra_json` keys the app reads:
+
+| Key | Type | Example | Shown as |
+|---|---|---|---|
+| `gender` | string | `"m."`, `"f."`, `"n."`, `"m./f."` | under the headword, plus a chip |
+| `measure_word` | string (zh) | `"个"` | chip `量 个` |
+| `syllables`, `tones` | arrays (zh) | `["píng","guǒ"]`, `[2,3]` | tone-coloured pinyin |
+| `grammar` | array of short strings | ru `["impf.", "pf. сказа́ть"]`; de `["pl. die Hunde"]`; es/fr `["irregular"]`; en `["uncountable"]` | one chip each, in order |
+
+Keep chips under about 18 characters. `word.reading` is IPA for es/fr/de/en (`/manˈθana/`) and the stressed form or transliteration source for ru/ar. The app makes the Latin transliteration itself.
+
 ## Word lists (levels)
 
 ### Spanish, A1–C1: ELELex (CEFRLex)
@@ -44,5 +63,9 @@ Order of preference: official free list > an Anki shared deck for that exam leve
 
 - **fr: FLELex (found, ready).** `https://cental.uclouvain.be/cefrlex/static/resources/fr/FleLex_TT_Beacco.tsv` (14,236 lemmas, TreeTagger POS; also `FleLex_TT.csv`, and `FleLex_CRF.csv` with 17,871 lemmas). Licence **CC BY-NC-SA 4.0**. Same first-level-in-≥2-textbooks rule as ELELex. Levels A1–C2; keep A1–C1.
 - **de: Goethe official lists (found).** A1 `https://www.goethe.de/pro/relaunch/prf/ca/A1_SD1_Wortliste_02.pdf` (also the newer `https://www.goethe.de/pro/relaunch/prf/sw/Goethe-Zertifikat_A1_Fit1_Wortliste.pdf`), B1 `https://www.goethe.de/pro/relaunch/prf/da/Goethe-Zertifikat_B1_Wortliste.pdf`. The A2 file is still to find on goethe.de. These are PDF tables: extract them with pdfplumber, and check articles and plurals. There's no official B2/C1 list (Goethe doesn't publish one), so B2–C1 come from FrequencyWords `de` banded to size, minus A1–B1 words. Copyright Goethe-Institut; personal use only.
-- **ru and ar: KELLY lists (found, licence to confirm).** KELLY (Kilgarriff et al. 2014, *Language Resources and Evaluation*, doi:10.1007/s10579-013-9251-2) has CEFR-graded A1–C2 lists for nine languages, including **Russian and Arabic**. Download them via Språkbanken / University of Oslo Text Laboratory. The licence is reported as CC BY-NC-SA 2.0 (Oslo) or CC BY-SA 3.0 (Swedish list), so check the file that comes with each list. For Russian: ТРКИ A1/A2/B2 (PRD §3.1 links) take priority, and KELLY fills B1 and C1. For Arabic, KELLY is the main list, with headwords fully vowelled from Wiktionary.
+- **ru and ar: KELLY lists (downloaded and checked).** KELLY (Kilgarriff et al. 2014, *Language Resources and Evaluation*, doi:10.1007/s10579-013-9251-2) is hosted at `https://ssharoff.github.io/kelly/` and prefetched to `work/prefetch/kelly/`. The licence is the project's **CC BY-NC-SA 2.0** (no separate file ships with the ru/ar lists; cite the paper). Files are `.xls`, so add `xlrd==2.0.1` to the pipeline.
+  - `ru_m3.xls`: 8,958 rows, columns `Lemma, CEFR, POS, Frq abs, Frq ipm`. Normalise CEFR to upper case: A1 938, A2 1,060, B1 1,562, B2 3,423, C1 1,393 (**8,376** at A1–C1). ТРКИ A1/A2/B2 (PRD §3.1 links) take priority, KELLY fills B1 and C1, and words in both keep the ТРКИ level.
+  - `ar_m3.xls`: 8,893 rows. Headword is column 5 (`الكلمة الأصلية Original word`, unvowelled), level column 6 (`CEFR level`), POS column 3 (Arabic labels: اسم noun, صفة adj, فعل verb…), frequency column 7. Corrections are in column 4: use them when filled. A1 775, A2 1,246, B1 1,553, B2 1,703, C1 1,440 (**6,717** at A1–C1). It's the main Arabic list. Vowel the headwords from Wiktionary (kaikki `Arabic` entries, matched on the unvowelled form plus POS); words without a vowelled Wiktionary form are dropped and logged.
+- **Arabic sentences are thin on Tatoeba** (the `ara` export is 1.2 MB, against 9–22 MB for spa/rus/deu/fra). Use Wiktionary usage examples (kaikki `senses[].examples` with `english`) as the second sentence source, and hand-written CC0 gap fillers (like `zh_extra_sentences.tsv`) for the rest.
+- All of the above was prefetched on 2026-10-29 to `pipeline/work/prefetch/` (kaikki dumps for Spanish, English, Russian, German, French and Arabic, plus every word list, frequency list and Tatoeba export).
 - If KELLY can't be used, take an Anki shared deck for ТРКИ-1 / ТРКИ-3 (Russian) or an MSA frequency deck (Arabic), word list only.

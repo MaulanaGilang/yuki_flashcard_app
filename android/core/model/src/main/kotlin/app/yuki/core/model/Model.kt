@@ -107,7 +107,12 @@ data class Word(
   val tones: List<Int> = emptyList(),
   val measureWord: String? = null,
   val gender: String? = null,
-)
+  /** Other grammar notes as short chips: aspect pair, plural, "irregular", "uncountable" (PRD §2.2). */
+  val grammar: List<String> = emptyList(),
+) {
+  /** Every grammar chip for the card back, in display order. */
+  val chips: List<String> get() = listOfNotNull(measureWord?.let { "量 $it" }, gender) + grammar
+}
 
 data class Sense(val pos: String, val gloss: String)
 
