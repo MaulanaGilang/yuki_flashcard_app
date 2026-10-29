@@ -4,6 +4,7 @@ plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.compose.compiler)
   alias(libs.plugins.kotlin.serialization)
+  alias(libs.plugins.baselineprofile)
 }
 
 // Release signing from a local, git-ignored keystore.properties (see README). CI builds unsigned.
@@ -86,6 +87,8 @@ dependencies {
   implementation(libs.androidx.navigation3.ui)
   implementation(libs.androidx.lifecycle.viewmodel.navigation3)
   implementation(libs.kotlinx.serialization.json)
+  implementation(libs.androidx.profileinstaller)
+  baselineProfile(project(":baselineprofile"))
   debugImplementation(libs.androidx.compose.ui.tooling)
 
   testImplementation(libs.junit)
