@@ -1,0 +1,398 @@
+# Curated Fluent Emoji 3D matches (MIT, microsoft/fluentui-emoji).
+# Key: headword (applies to every n/v/adj entry with that headword) or a full word id
+# (use the id when one headword has several unrelated meanings, e.g. 花 flower vs spend).
+# Value: the asset folder name under fluentui-emoji/assets/.
+# Built from `images --suggest-fluent` candidates, reviewed by hand; wrong auto-matches dropped.
+
+# people & roles
+孩子: Child
+小朋友: Child
+儿童: Child
+男人: Man
+男子: Man
+男生: Boy
+女人: Woman
+女子: Woman
+女生: Girl
+姑娘: Girl
+人: Person
+老师: Teacher
+教师: Teacher
+学生: Student
+学员: Student
+警察: Police officer
+农民: Farmer
+歌手: Singer
+厨师: Cook
+医生: Health worker
+护士: Health worker
+宝宝: Baby
+娃娃: Baby
+新郎: Person in tuxedo
+新娘: Person with veil
+公主: Princess
+王子: Prince
+国王: Crown
+宇航员: Astronaut
+飞行员: Pilot
+士兵: Military helmet
+军人: Military helmet
+法官: Judge
+裁判: Judge
+鬼: Ghost
+机器人: Robot
+
+# body
+手: Hand with fingers splayed
+脚: Foot
+足: Foot
+腿: Leg
+眼睛: Eyes
+耳朵: Ear
+鼻子: Nose
+嘴: Mouth
+牙: Tooth
+舌头: Tongue
+大脑: Brain
+骨头: Bone
+肌肉: Flexed biceps
+血: Drop of blood
+血液: Drop of blood
+心: Red heart
+脚印: Footprints
+
+# feelings & actions
+笑: Grinning face
+微笑: Slightly smiling face
+哭: Loudly crying face
+睡觉: Sleeping face
+睡: Sleeping face
+高兴: Grinning face with big eyes
+快乐: Grinning face with big eyes
+开心: Grinning face with big eyes
+生气: Angry face
+害怕: Fearful face
+怕: Fearful face
+可怕: Fearful face
+累: Tired face
+想: Thinking face
+爱: Red heart
+喜欢: Smiling face with heart-eyes
+病: Face with thermometer
+生病: Face with thermometer
+好吃: Face savoring food
+无聊: Yawning face
+吐: Face vomiting
+醉: Woozy face
+拥抱: People hugging
+抱: People hugging
+写: Writing hand
+再见: Waving hand
+招手: Waving hand
+鼓掌: Clapping hands
+拍: Clapping hands
+听: Ear
+看: Eyes
+说: Speaking head
+跑: Person running
+跑步: Person running
+游泳: Person swimming
+唱歌: Microphone
+跳舞: Man dancing
+舞蹈: Man dancing
+读: Open book
+吃: Fork and knife with plate
+喝: Cup with straw
+购物: Shopping bags
+跪: Person kneeling
+冷: Cold face
+热: Hot face
+
+# food & drink
+饭: Cooked rice
+米饭: Cooked rice
+面包: Bread
+鸡蛋: Egg
+蛋: Egg
+肉: Cut of meat
+鱼: Fish
+饺子: Dumpling
+寿司: Sushi
+三明治: Sandwich
+香肠: Hot dog
+薯条: French fries
+汉堡: Hamburger
+比萨: Pizza
+冰淇淋: Soft ice cream
+蛋糕: Shortcake
+饼干: Cookie
+巧克力: Chocolate bar
+糖: Candy
+粥: Bowl with spoon
+碗: Steaming bowl
+面条: Steaming bowl
+菜: Leafy green
+苹果: Red apple
+香蕉: Banana
+西瓜: Watermelon
+葡萄: Grapes
+梨: Pear
+桃: Peach
+瓜: Melon
+草莓: Strawberry
+柠檬: Lemon
+橘子: Tangerine
+西红柿: Tomato
+番茄: Tomato
+土豆: Potato
+黄瓜: Cucumber
+茄子: Eggplant
+玉米: Ear of corn
+花生: Peanuts
+盐: Salt
+茶: Teacup without handle
+茶叶: Teacup without handle
+咖啡: Hot beverage
+牛奶: Glass of milk
+奶: Glass of milk
+啤酒: Beer mug
+酒: Wine glass
+葡萄酒: Wine glass
+饮料: Cup with straw
+吸管: Cup with straw
+杯子: Cup with straw
+筷子: Chopsticks
+叉子: Fork and knife
+勺: Spoon
+海鲜: Lobster
+做饭: Cooking
+蜂蜜: Honey pot
+
+# animals & plants
+狗: Dog
+猫: Cat
+马: Horse
+牛: Cow face
+羊: Ewe
+猪: Pig
+鸡: Chicken
+公鸡: Rooster
+鸟: Bird
+鱼: Fish
+熊猫: Panda
+老虎: Tiger
+虎: Tiger
+猴子: Monkey
+猴: Monkey
+大象: Elephant
+兔: Rabbit
+兔子: Rabbit
+鼠: Rat
+老鼠: Rat
+蛇: Snake
+蝴蝶: Butterfly
+蜜蜂: Honeybee
+蚊子: Mosquito
+虫子: Bug
+病毒: Microbe
+树: Deciduous tree
+松树: Evergreen tree
+草: Herb
+植物: Potted plant
+"zh:花:hua1:n": Blossom
+花园: House with garden
+开花: Blossom
+
+# nature & weather
+山: Mountain
+海: Water wave
+大海: Water wave
+海洋: Water wave
+波浪: Water wave
+岛: Desert island
+沙漠: Desert
+火山: Volcano
+太阳: Sun
+月亮: Crescent moon
+星星: Star
+地球: Globe showing asia-australia
+云: Cloud
+雨: Cloud with rain
+下雨: Cloud with rain
+雪: Snowflake
+下雪: Snowflake
+冰: Ice
+风: Wind face
+台风: Cyclone
+闪电: Cloud with lightning
+火: Fire
+天气: Sun behind cloud
+石头: Rock
+木头: Wood
+彩虹: Rainbow
+
+# places & buildings
+家: House
+房子: House
+房屋: House
+屋子: House
+学校: School
+学院: School
+医院: Hospital
+银行: Bank
+邮局: Post office
+宾馆: Hotel
+酒店: Hotel
+旅馆: Hotel
+饭店: Hotel
+商店: Convenience store
+超市: Shopping cart
+商场: Department store
+工厂: Factory
+教堂: Church
+城市: Cityscape
+都市: Cityscape
+写字楼: Office building
+电影院: Cinema
+体育场: Stadium
+体育馆: Stadium
+球场: Stadium
+车站: Bus stop
+"zh:站:zhan4:n": Station
+公园: National park
+洗手间: Toilet
+厕所: Toilet
+卫生间: Toilet
+
+# transport
+车: Automobile
+汽车: Automobile
+出租车: Taxi
+公共汽车: Bus
+公交车: Bus
+巴士: Bus
+客车: Bus
+火车: Train
+列车: Train
+地铁: Metro
+电车: Tram
+飞机: Airplane
+直升机: Helicopter
+火箭: Rocket
+船: Ship
+船只: Ship
+自行车: Bicycle
+摩托车: Motorcycle
+卫星: Satellite
+
+# objects
+门: Door
+大门: Door
+窗户: Window
+窗子: Window
+窗口: Window
+床: Bed
+椅子: Chair
+座位: Seat
+沙发: Couch and lamp
+灯: Light bulb
+钟: Mantelpiece clock
+手表: Watch
+闹钟: Alarm clock
+电话: Telephone
+手机: Mobile phone
+电视: Television
+电脑: Desktop computer
+计算机: Desktop computer
+笔记本: Notebook
+本子: Notebook
+键盘: Keyboard
+鼠标: Computer mouse
+打印机: Printer
+相机: Camera
+照相机: Camera
+摄像机: Video camera
+收音机: Radio
+电池: Battery
+钥匙: Key
+锁: Locked
+剪刀: Scissors
+剪子: Scissors
+尺子: Straight ruler
+尺: Straight ruler
+钢笔: Fountain pen
+铅笔: Pencil
+笔: Pen
+书: Closed book
+图书: Books
+报纸: Newspaper
+地图: World map
+日历: Calendar
+日期: Calendar
+信封: Envelope
+"zh:信:xin4:n": Envelope
+信用卡: Credit card
+礼物: Wrapped gift
+气球: Balloon
+玩具: Teddy bear
+伞: Umbrella
+镜子: Mirror
+针: Sewing needle
+线: Thread
+牙刷: Toothbrush
+刷子: Toothbrush
+眼镜: Glasses
+钱: Coin
+钱包: Purse
+皮包: Handbag
+背包: Backpack
+书包: Backpack
+行李: Luggage
+箱子: Package
+护照: Passport control
+门票: Ticket
+票: Ticket
+名字: Name badge
+奖: Trophy
+奖杯: Trophy
+音乐: Musical notes
+钢琴: Musical keyboard
+鼓: Drum
+画儿: Framed picture
+照片: Framed picture
+图片: Framed picture
+电子邮件: E-mail
+扇子: Folding hand fan
+铃: Bell
+炸弹: Bomb
+烟花: Fireworks
+枪: Water pistol
+取款机: Atm sign
+电梯: Elevator
+轮子: Wheel
+新闻: Newspaper
+
+# clothes & sport
+衣服: T-shirt
+裙子: Dress
+裤子: Jeans
+牛仔裤: Jeans
+短裤: Shorts
+外套: Coat
+上衣: Coat
+帽子: Billed cap
+围巾: Scarf
+手套: Gloves
+袜子: Socks
+鞋: Running shoe
+凉鞋: Womans sandal
+拖鞋: Thong sandal
+领带: Necktie
+内衣: Briefs
+足球: Soccer ball
+篮球: Basketball
+排球: Volleyball
+网球: Tennis
+羽毛球: Badminton
+婚礼: Wedding
+生日: Birthday cake

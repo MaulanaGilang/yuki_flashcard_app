@@ -1,0 +1,37 @@
+# Hand-curated corrections applied in the enrich stage (yuki-authored, CC0).
+# Keys are stable word ids. `senses` replaces the CC-CEDICT glosses entirely.
+# Used for entries CC-CEDICT lacks (compositional HSK phrases) and for split senses
+# (称1 "to call" vs 称2 "to weigh").
+
+"zh:称:cheng1:v":
+  senses: [{pos: v, gloss: "to call; to name; to address as"}, {pos: v, gloss: "to say; to state"}]
+"zh:称:cheng1:v:2":
+  senses: [{pos: v, gloss: "to weigh"}]
+"zh:车上:che1shang5:n":
+  senses: [{pos: n, gloss: "in the car; on the bus or train"}]
+"zh:不太:bu4tai4:adv":
+  senses: [{pos: adv, gloss: "not very; not too"}]
+"zh:不一会儿:bu4yi1hui4r5:phr":
+  senses: [{pos: phr, gloss: "in a moment; before long; soon"}]
+"zh:见过:jian4guo5:phr":
+  senses: [{pos: phr, gloss: "to have seen; to have met"}]
+"zh:送到:song4dao4:v":
+  senses: [{pos: v, gloss: "to deliver to; to take (someone) to"}]
+"zh:这时候:zhe4shi2hou5:pron":
+  senses: [{pos: pron, gloss: "at this time; at this moment; then"}]
+"zh:放到:fang4dao4:v":
+  senses: [{pos: v, gloss: "to put (in, on); to place"}]
+"zh:能不能:neng2bu5neng2:phr":
+  senses: [{pos: phr, gloss: "can or not; could you…?; is it possible to"}]
+"zh:眼里:yan3li5:n":
+  senses: [{pos: n, gloss: "in one's eyes; in one's view"}]
+"zh:有劲儿:you3jin4r5:phr":
+  senses: [{pos: phr, gloss: "strong; energetic"}, {pos: phr, gloss: "interesting; fun"}]
+"zh:城里:cheng2li3:n":
+  senses: [{pos: n, gloss: "in the city; in town; downtown"}]
+"zh:很难说:hen3nan2shuo1:phr":
+  senses: [{pos: phr, gloss: "hard to say; difficult to tell"}]
+"zh:一番:yi1fan1:num":
+  senses: [{pos: num, gloss: "a bout of; some (effort, words, thought)"}]
+"zh:指着:zhi3zhe5:phr":
+  senses: [{pos: phr, gloss: "pointing at; pointing to"}]

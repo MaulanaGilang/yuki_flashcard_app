@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Yuki</string>
+    <string name="widget_name">Yuki word</string>
+    <string name="widget_description">A word you\'re learning, one a day. Tap to open it.</string>
+    <string name="streak_widget_name">Yuki streak</string>
+    <string name="streak_widget_description">Your streak, with Yuki reminding you to study.</string>
+</resources>

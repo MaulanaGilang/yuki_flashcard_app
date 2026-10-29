@@ -1,0 +1,25 @@
+# Android / Gradle
+android/.gradle/
+android/**/build/
+android/local.properties
+android/.idea/
+android/.kotlin/
+*.iml
+*.keystore
+*.jks
+
+# Pipeline
+pipeline/.venv/
+pipeline/work/
+**/__pycache__/
+.env
+
+# Built packs (published as GitHub Release assets)
+/packs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local screenshots from emulator checks
+android/build-shots/

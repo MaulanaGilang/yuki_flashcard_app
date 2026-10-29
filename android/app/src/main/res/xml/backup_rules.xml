@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 and older: back up only progress. Packs are re-installable. -->
+<full-backup-content>
+    <include domain="database" path="progress.db" />
+    <include domain="database" path="progress.db-wal" />
+    <include domain="database" path="progress.db-shm" />
+</full-backup-content>

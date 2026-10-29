@@ -1,0 +1,150 @@
+# Recipe: Mandarin (Simplified), HSK 3.0 levels 1-6.
+# Every stage reads this file; adding a language means adding a recipe like this one.
+
+pack:
+  id: zh-hsk-1-6
+  version: 1
+  schema_version: 1
+  lang: zh
+  title: "Mandarin · HSK 1–6"
+  levels: [1, 2, 3, 4, 5, 6]
+  level_label: "HSK {level}"
+
+# Pinned sources. `kind: http` downloads one file (optionally extracting it);
+# `kind: git_sparse` does a blobless sparse checkout of a pinned commit.
+# Tatoeba and CC-CEDICT publish rolling exports; the sha256 of what was fetched is
+# recorded in work/raw/fetch.lock.json, and `fetch --refresh` is needed to move forward.
+sources:
+  hsk30:
+    kind: http
+    license: MIT (ivankra/hsk30; list derived from the PRC MoE HSK 3.0 standard)
+    files:
+      - url: https://raw.githubusercontent.com/ivankra/hsk30/4ff9e3915ce87baaecd7ebe263085573a4ea3192/hsk30.csv
+        dest: hsk30/hsk30.csv
+      - url: https://raw.githubusercontent.com/ivankra/hsk30/4ff9e3915ce87baaecd7ebe263085573a4ea3192/LICENSE
+        dest: hsk30/LICENSE
+  chkv:
+    kind: http
+    license: MIT (drkameleon/complete-hsk-vocabulary)
+    files:
+      - url: https://raw.githubusercontent.com/drkameleon/complete-hsk-vocabulary/7ac65bf1a6387d35f1ade478906172a19311c7f9/complete.min.json
+        dest: chkv/complete.min.json
+      - url: https://raw.githubusercontent.com/drkameleon/complete-hsk-vocabulary/7ac65bf1a6387d35f1ade478906172a19311c7f9/LICENSE
+        dest: chkv/LICENSE
+  cedict:
+    kind: http
+    license: CC BY-SA 4.0 (CC-CEDICT, MDBG)
+    files:
+      - url: https://www.mdbg.net/chinese/export/cedict/cedict_1_0_ts_utf-8_mdbg.zip
+        dest: cedict/cedict.zip
+        extract: zip
+  tatoeba:
+    kind: http
+    license: CC BY 2.0 FR (sentences); audio licence per speaker
+    files:
+      - url: https://downloads.tatoeba.org/exports/per_language/cmn/cmn_sentences_detailed.tsv.bz2
+        dest: tatoeba/cmn_sentences_detailed.tsv.bz2
+        extract: bz2
+      - url: https://downloads.tatoeba.org/exports/per_language/eng/eng_sentences.tsv.bz2
+        dest: tatoeba/eng_sentences.tsv.bz2
+        extract: bz2
+      - url: https://downloads.tatoeba.org/exports/per_language/cmn/cmn-eng_links.tsv.bz2
+        dest: tatoeba/cmn-eng_links.tsv.bz2
+        extract: bz2
+      - url: https://downloads.tatoeba.org/exports/sentences_with_audio.tar.bz2
+        dest: tatoeba/sentences_with_audio.tar.bz2
+        extract: tar
+  mmah:
+    kind: http
+    license: Arphic Public License (graphics.txt); LGPL (dictionary.txt) — Make Me a Hanzi
+    files:
+      - url: https://raw.githubusercontent.com/skishore/makemeahanzi/bddc96d41bef78427ed0e034e9f7e31d71fd1b92/graphics.txt
+        dest: mmah/graphics.txt
+      - url: https://raw.githubusercontent.com/skishore/makemeahanzi/bddc96d41bef78427ed0e034e9f7e31d71fd1b92/dictionary.txt
+        dest: mmah/dictionary.txt
+      - url: https://raw.githubusercontent.com/skishore/makemeahanzi/bddc96d41bef78427ed0e034e9f7e31d71fd1b92/COPYING
+        dest: mmah/COPYING
+  audio_cmn:
+    kind: git_sparse
+    license: CC BY-SA (hugolpz/audio-cmn; speakers Yue Tan / Chen Wang via Shtooka)
+    repo: https://github.com/hugolpz/audio-cmn.git
+    commit: f759a0f18f27690742957619e1248ed91e9b3f2c
+    patterns: ["/64k/hsk/*", "/64k/syllabs/*", "/README.md"]
+    dest: audio-cmn
+  fluent_emoji:
+    kind: git_sparse
+    license: MIT (microsoft/fluentui-emoji)
+    repo: https://github.com/microsoft/fluentui-emoji.git
+    commit: 1ffb34c752ecf5d402f04cfb4b392c77f57c54bc
+    patterns: ["/assets/*/metadata.json", "/assets/*/3D/*.png", "/assets/*/Default/3D/*.png", "/LICENSE"]
+    dest: fluentui-emoji
+
+normalize:
+  # HSK 3.0 POS codes (ivankra) -> pack POS tags
+  pos_map: {N: n, V: v, Adj: adj, Adv: adv, Pron: pron, Pr: pron, Num: num, M: m, Prep: prep,
+            Conj: conj, Aux: part, Int: intj, Prefix: prefix, Suffix: suffix, Phonetic: onom}
+  # Headwords whose HSK list has no POS and whose fallback POS is wrong (feeds the stable id).
+  pos_fix: {不太: adv, 很难说: phr}
+
+enrich:
+  max_gloss_chars: 80
+  max_senses: 4
+  sentences_per_word: 1
+  max_sentence_tokens: 15
+  # Tokens that never count against the level filter (numbers, punctuation, names are handled in code).
+  level_whitelist: ["了", "的", "吗", "呢", "吧", "啊", "着", "过", "地", "得"]
+  # Sentences with fewer than this many above-level tokens are accepted when no in-level one exists.
+  relaxed_max_above_level: 1
+  # Extra free sentence files (TSV: word<TAB>zh<TAB>en), e.g. hand-written gap fillers; licence noted per file.
+  extra_sentence_files:
+    - path: config/zh_extra_sentences.tsv
+      source: yuki-authored
+      license: CC0
+
+media:
+  audio:
+    loudness_lufs: -16
+    bitrate: 32k
+    silence_pad_ms: 100
+    word_cap_kb: 8
+    sentence_cap_kb: 20
+    human_sources: [audio_cmn, lingua_libre, tatoeba]
+    lingua_libre:
+      category: "Lingua Libre pronunciation-cmn"
+      license: CC BY-SA 4.0
+    tts:
+      provider: edge
+      voice: zh-CN-XiaoxiaoNeural
+      rate: "-10%"
+  images:
+    size: 768
+    max_kb: 60
+    outline_dp: 6
+    # Pixels per dp for the outline at 768 px (the art window is about 256 dp wide).
+    px_per_dp: 3
+    fluent_keyword_map: config/zh_fluent_map.yaml
+    # Abstract-gloss patterns -> typographic card; per-word kind/subject overrides
+    overrides: config/zh_image_overrides.yaml
+    flux:
+      model: "@cf/black-forest-labs/flux-1-schnell"
+      steps: 4
+      daily_image_budget: 170
+      # Fixed style prompt from DESIGN-SYSTEM.md §5.4
+      style_prompt: "single {subject}, glossy soft 3D icon in the style of Microsoft Fluent Emoji 3D, rounded friendly shapes, soft studio lighting, subtle gradients, centered, isolated on plain white background, no text, no border"
+      # Workers AI exposes no seed for this model; the fixed prompt + cached raw output keep it reproducible.
+
+evaluate:
+  gloss_min: 1
+  gloss_max_chars: 80
+  sentence_min_per_word: 1
+  # share of first sentences with at most `relaxed_max_above_level` harder words
+  sentence_level_ok_ratio: 0.95
+  asr:
+    enabled: true
+    model: small
+    sample: 300
+    max_cer: 0.05
+    pass_ratio: 0.95
+  stroke_coverage: 1.0
+  word_audio_coverage: 1.0
+  sample_ratio: 0.05
