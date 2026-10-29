@@ -1,0 +1,104 @@
+# DRAFT recipe: Spanish (Spain), CEFR A1–C1. Sources and level rule: config/sources.md.
+# Written before the multi-language engine exists; the pipeline session may reshape keys to fit it.
+
+pack:
+  id: es-cefr-a1-c1
+  version: 1
+  schema_version: 1
+  lang: es
+  title: "Spanish · A1–C1"
+  levels: [1, 2, 3, 4, 5]          # 1 = A1 … 5 = C1
+  level_labels: {1: A1, 2: A2, 3: B1, 4: B2, 5: C1}
+
+sources:
+  elelex:
+    kind: http
+    license: CC BY-NC-SA 4.0 (ELELex, CEFRLex, UCLouvain; cite François et al.)
+    files:
+      - url: https://cental.uclouvain.be/cefrlex/static/resources/es/ELELex.tsv
+        dest: elelex/ELELex.tsv
+      - url: https://cental.uclouvain.be/cefrlex/static/tagsets/es/freeling_to_elelex.yaml
+        dest: elelex/freeling_to_elelex.yaml
+  frequency:
+    kind: http
+    license: CC BY-SA 4.0 (hermitdave/FrequencyWords, OpenSubtitles 2018)
+    files:
+      - url: https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/es/es_50k.txt
+        dest: frequency/es_50k.txt
+  wiktionary:
+    kind: http
+    license: CC BY-SA 4.0 / GFDL (English Wiktionary via kaikki.org, Tatu Ylonen)
+    # Prefetched to work/prefetch/kaikki/ on 2026-10-29 (the file is deprecated upstream).
+    files:
+      - url: https://kaikki.org/dictionary/Spanish/kaikki.org-dictionary-Spanish.jsonl
+        dest: kaikki/kaikki.org-dictionary-Spanish.jsonl
+  tatoeba:
+    kind: http
+    license: CC BY 2.0 FR (sentences); audio licence per speaker
+    files:
+      - url: https://downloads.tatoeba.org/exports/per_language/spa/spa_sentences_detailed.tsv.bz2
+        dest: tatoeba/spa_sentences_detailed.tsv.bz2
+        extract: bz2
+      - url: https://downloads.tatoeba.org/exports/per_language/spa/spa-eng_links.tsv.bz2
+        dest: tatoeba/spa-eng_links.tsv.bz2
+        extract: bz2
+      - url: https://downloads.tatoeba.org/exports/per_language/eng/eng_sentences.tsv.bz2
+        dest: tatoeba/eng_sentences.tsv.bz2
+        extract: bz2
+
+wordlist:
+  source: elelex
+  # A word's level = the first level where it appears in at least this many textbooks.
+  min_docs_at_level: 2
+  content_tags: [N, V, A, R]
+  function_words_min_docs_total: 20
+  # C1 top-up from frequency ranks not already listed.
+  top_up:
+    level: 5
+    from: frequency
+    rank_range: [6000, 12000]
+    target_level_size: 1200
+  # Wiktionary must have an English gloss, or the word is dropped (logged in the evaluate report).
+  require_gloss: true
+
+normalize:
+  # Noun gender from Wiktionary head templates -> word.extra_json.gender ("m.", "f.", "m./f.")
+  gender: true
+  # Show the article on the card front for nouns: "el libro", "la manzana"
+  article_on_front: true
+
+enrich:
+  max_gloss_chars: 80
+  max_senses: 4
+  sentences_per_word: 1
+  max_sentence_tokens: 14
+  relaxed_max_above_level: 1
+
+media:
+  audio:
+    loudness_lufs: -16
+    bitrate: 32k
+    workers: 6
+    silence_pad_ms: 100
+    word_cap_kb: 8
+    sentence_cap_kb: 20
+    human_sources: [lingua_libre, tatoeba]
+    lingua_libre:
+      category: "Lingua Libre pronunciation-spa"
+      license: CC BY-SA 4.0
+    tts:
+      provider: edge
+      voice: es-ES-ElviraNeural
+      rate: "-5%"
+  images:
+    # Shared concept library (all languages): keyed by the English concept of the first sense.
+    library: shared
+    size: 768
+    max_kb: 60
+
+evaluate:
+  gloss_min: 1
+  sentence_min_per_word: 1
+  sentence_level_ok_ratio: 0.9
+  word_audio_coverage: 1.0
+  sample_ratio: 0.05

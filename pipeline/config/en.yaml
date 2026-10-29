@@ -1,0 +1,91 @@
+# DRAFT recipe: English, CEFR B2–C1 (the user starts at B2). Sources: config/sources.md.
+# Written before the multi-language engine exists; the pipeline session may reshape keys to fit it.
+
+pack:
+  id: en-cefr-b2-c1
+  version: 1
+  schema_version: 1
+  lang: en
+  title: "English · B2–C1"
+  levels: [4, 5]                   # same numbering as other CEFR packs: 4 = B2, 5 = C1
+  level_labels: {4: B2, 5: C1}
+
+sources:
+  cefrj:
+    kind: http
+    license: Free for research and commercial use with citation (CEFR-J Vocabulary Profile 1.5, Tono Laboratory, TUFS)
+    files:
+      - url: https://raw.githubusercontent.com/openlanguageprofiles/olp-en-cefrj/master/cefrj-vocabulary-profile-1.5.csv
+        dest: cefrj/cefrj-vocabulary-profile-1.5.csv
+  octanove:
+    kind: http
+    license: CC BY-SA 4.0 (Octanove Vocabulary Profile C1/C2 1.0, Octanove Labs)
+    files:
+      - url: https://raw.githubusercontent.com/openlanguageprofiles/olp-en-cefrj/master/octanove-vocabulary-profile-c1c2-1.0.csv
+        dest: octanove/octanove-vocabulary-profile-c1c2-1.0.csv
+  frequency:
+    kind: http
+    license: CC BY-SA 4.0 (hermitdave/FrequencyWords, OpenSubtitles 2018)
+    files:
+      - url: https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/en/en_50k.txt
+        dest: frequency/en_50k.txt
+  wiktionary:
+    kind: http
+    license: CC BY-SA 4.0 / GFDL (English Wiktionary via kaikki.org, Tatu Ylonen)
+    # Prefetched to work/prefetch/kaikki/ on 2026-10-29 (3.3 GB; the file is deprecated upstream).
+    files:
+      - url: https://kaikki.org/dictionary/English/kaikki.org-dictionary-English.jsonl
+        dest: kaikki/kaikki.org-dictionary-English.jsonl
+  tatoeba:
+    kind: http
+    license: CC BY 2.0 FR (sentences); audio licence per speaker
+    files:
+      - url: https://downloads.tatoeba.org/exports/per_language/eng/eng_sentences.tsv.bz2
+        dest: tatoeba/eng_sentences.tsv.bz2
+        extract: bz2
+
+wordlist:
+  levels_from:
+    - {source: cefrj, cefr: B2, level: 4}
+    - {source: octanove, cefr: C1, level: 5}
+  # "a.m./A.M./am/AM" -> headword "a.m."; other forms go into search_key
+  split_variants_on: "/"
+  # Order inside a level by frequency rank (unranked words last)
+  rank_by: frequency
+
+enrich:
+  # Meanings stay in English: for an English deck, the "meaning" is a short learner's
+  # definition (first Wiktionary sense, simplified), plus IPA as the reading.
+  gloss_style: definition
+  reading: ipa
+  ipa_accent_preference: [UK, RP, US, GA]
+  max_gloss_chars: 90
+  max_senses: 3
+  sentences_per_word: 1
+  max_sentence_tokens: 18
+
+media:
+  audio:
+    loudness_lufs: -16
+    bitrate: 32k
+    workers: 6
+    word_cap_kb: 8
+    sentence_cap_kb: 20
+    human_sources: [lingua_libre, tatoeba]
+    lingua_libre:
+      category: "Lingua Libre pronunciation-eng"
+      license: CC BY-SA 4.0
+    tts:
+      provider: edge
+      voice: en-GB-SoniaNeural
+      rate: "-5%"
+  images:
+    library: shared
+    size: 768
+    max_kb: 60
+
+evaluate:
+  gloss_min: 1
+  sentence_min_per_word: 1
+  word_audio_coverage: 1.0
+  sample_ratio: 0.05
