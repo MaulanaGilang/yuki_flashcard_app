@@ -186,6 +186,9 @@ CREATE TABLE asset(word_id TEXT, kind TEXT, path TEXT, human INTEGER, source TEX
 CREATE TABLE hanzi(ch TEXT PRIMARY KEY, stroke_count INTEGER, radical TEXT, strokes_json TEXT, medians_json TEXT);
 CREATE INDEX word_level ON word(level, freq_rank);
 CREATE INDEX word_search ON word(search_key);
+CREATE INDEX sense_word ON sense(word_id, ord);
+CREATE INDEX sentence_word ON sentence(word_id, ord);
+CREATE INDEX asset_word ON asset(word_id);
 """
 
 TONE_MARKS = {"a": "āáǎà", "e": "ēéěè", "i": "īíǐì", "o": "ōóǒò", "u": "ūúǔù", "ü": "ǖǘǚǜ"}
