@@ -46,6 +46,7 @@ interface ScriptGuide {
       Lang.DE -> LatinRules.German
       Lang.FR -> LatinRules.French
       Lang.ES -> LatinRules.Spanish
+      Lang.JA -> KanaGuide
       Lang.ZH, Lang.EN -> null
     }
   }

@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -34,6 +35,22 @@ fun TransliterationLine(text: String, lang: Lang, modifier: Modifier = Modifier)
   val latin = remember(text) { guide.transliterate(text) }
   if (latin.isBlank()) return
   Text(latin, style = YukiType.reading.copy(fontSize = 20.sp), color = Yuki.colors.line.field, textAlign = TextAlign.Center, modifier = modifier)
+}
+
+/**
+ * Japanese reading: the kana (skipped when the word is already written in kana) over its romaji,
+ * e.g. たべる / taberu under 食べる. Romaji comes from the kana, since kanji have no fixed sound.
+ */
+@Composable
+fun KanaReading(headword: String, kana: String, modifier: Modifier = Modifier) {
+  val source = kana.ifBlank { headword }
+  val romaji = remember(source) { app.yuki.core.model.script.KanaGuide.transliterate(source) }
+  Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+    if (kana.isNotBlank() && kana != headword) {
+      Text(kana, style = YukiType.reading.copy(fontFamily = app.yuki.core.designsystem.theme.Klee, fontWeight = FontWeight.Normal), color = Yuki.colors.neutral.ink2, textAlign = TextAlign.Center)
+    }
+    if (romaji.isNotBlank()) Text(romaji, style = YukiType.reading.copy(fontSize = 18.sp), color = Yuki.colors.line.field, textAlign = TextAlign.Center)
+  }
 }
 
 /**

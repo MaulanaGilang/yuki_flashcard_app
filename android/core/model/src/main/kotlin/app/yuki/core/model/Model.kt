@@ -2,7 +2,8 @@ package app.yuki.core.model
 
 import java.time.Instant
 
-enum class Script { HAN, LATIN, CYRILLIC, ARABIC }
+/** HAN = Chinese characters only; JAPANESE = kanji mixed with kana. */
+enum class Script { HAN, JAPANESE, LATIN, CYRILLIC, ARABIC }
 
 /** A study language. Each one is a "line" in the design system. */
 enum class Lang(
@@ -19,10 +20,17 @@ enum class Lang(
   EN("en", "Jade", "EN", "English", Script.LATIN),
   DE("de", "Ochre", "DE", "German", Script.LATIN),
   FR("fr", "Iris", "FR", "French", Script.LATIN),
-  AR("ar", "Olive", "ع", "Arabic", Script.ARABIC, rtl = true);
+  AR("ar", "Olive", "ع", "Arabic", Script.ARABIC, rtl = true),
+  JA("ja", "Ai", "あ", "Japanese", Script.JAPANESE);
 
   /** Needs a transliteration line to be readable by a beginner. */
   val needsTransliteration: Boolean get() = script == Script.CYRILLIC || script == Script.ARABIC
+
+  /**
+   * Written with characters whose sound isn't in the spelling (hanzi, kanji): the card shows the
+   * reading (pinyin, kana) as its own line, can hide it on the front, and offers stroke practice.
+   */
+  val hasCharacterReading: Boolean get() = script == Script.HAN || script == Script.JAPANESE
 
   companion object {
     fun fromCode(code: String): Lang = entries.first { it.code == code }

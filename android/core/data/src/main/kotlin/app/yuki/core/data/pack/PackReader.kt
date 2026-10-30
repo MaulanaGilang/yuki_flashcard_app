@@ -150,7 +150,8 @@ class PackReader(val packId: String, val lang: Lang, dbPath: String) : Closeable
         }
       }
     }
-    val characters = if (lang == Lang.ZH) {
+    // Stroke data for hanzi, and for kanji in Japanese packs (kana have no row, so they're skipped).
+    val characters = if (lang.hasCharacterReading) {
       word.headword.codePoints().toArray().map { String(Character.toChars(it)) }.distinct().mapNotNull { ch -> readHanzi(c, ch) }
     } else {
       emptyList()

@@ -47,6 +47,7 @@ import app.yuki.core.designsystem.theme.YukiType
 import app.yuki.core.model.FoilTier
 import app.yuki.core.model.Lang
 import app.yuki.core.model.Script
+import app.yuki.core.designsystem.theme.Klee
 import app.yuki.core.designsystem.theme.Naskh
 import androidx.compose.ui.text.style.TextDirection
 
@@ -127,6 +128,7 @@ fun Headword(text: String, lang: Lang, modifier: Modifier = Modifier, maxStyle: 
   val style = when {
     maxStyle != null -> maxStyle
     lang.script == Script.HAN -> YukiType.glyphHero(text.codePointCount(0, text.length))
+    lang.script == Script.JAPANESE -> YukiType.glyphHero(text.codePointCount(0, text.length), Klee)
     lang.script == Script.ARABIC -> TextStyle(fontFamily = Naskh, fontWeight = FontWeight.SemiBold, fontSize = 48.sp, lineHeight = 80.sp)
     text.length > 12 -> YukiType.wordHero.copy(fontSize = 32.sp, lineHeight = 40.sp)
     else -> YukiType.wordHero
@@ -145,6 +147,7 @@ fun Headword(text: String, lang: Lang, modifier: Modifier = Modifier, maxStyle: 
 fun ScriptText(text: String, lang: Lang, modifier: Modifier = Modifier, color: Color = Yuki.colors.neutral.ink) {
   val style = when (lang.script) {
     Script.HAN -> YukiType.sentenceZh
+    Script.JAPANESE -> YukiType.sentenceJa
     Script.ARABIC -> TextStyle(fontFamily = Naskh, fontSize = 22.sp, lineHeight = 40.sp)
     else -> MaterialTheme.typography.bodyLarge
   }

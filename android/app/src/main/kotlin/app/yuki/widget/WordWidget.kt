@@ -68,6 +68,8 @@ class WordWidget : GlanceAppWidget() {
     val reading = when {
       w.lang == Lang.ZH && w.syllables.isNotEmpty() -> w.syllables.joinToString("")
       w.lang.needsTransliteration -> ScriptGuide.of(w.lang)?.transliterate(w.headword).orEmpty()
+      w.lang == Lang.JA -> listOf(w.reading.takeIf { it != w.headword }, app.yuki.core.model.script.KanaGuide.transliterate(w.reading.ifBlank { w.headword }))
+        .filterNot { it.isNullOrBlank() }.joinToString(" ")
       else -> w.reading
     }
     return WidgetWord(w.id, w.lang, w.headword, reading, detail.senses.firstOrNull()?.gloss.orEmpty())

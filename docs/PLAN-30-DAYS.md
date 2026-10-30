@@ -15,6 +15,7 @@
 | German | A1–C1 | ~6,500 | Goethe A1–B1; B2–C1 from DeReWo frequency | `de-cefr-a1-c1` |
 | French | A1–C1 | ~6,000 | CEFRLex FLELex | `fr-cefr-a1-c1` |
 | Arabic (MSA) | A1–C1 | ~5,000 | KELLY Arabic list, frequency fallback | `ar-cefr-a1-c1` |
+| Japanese (added 30 Oct) | JLPT N5–N1 | ~8,000 | Jonathan Waller's JLPT lists (CC BY); JMdict / Wiktionary meanings; KanjiVG strokes | `ja-jlpt-n5-n1` |
 
 *Each source's licence and coverage is checked on the first day of that language. If a source fails, the fallback is a frequency list banded to CEFR sizes.*
 

@@ -139,7 +139,7 @@ fun SettingsScreen(graph: AppGraph) {
       SectionLabel("About")
       Text("Yuki ${BuildConfig.VERSION_NAME} · works fully offline", style = MaterialTheme.typography.bodyMedium, color = c.neutral.ink)
       Text(
-        "Fonts: Onest, Unbounded, LXGW WenKai GB, Noto Naskh Arabic (SIL OFL). Each content pack lists its own word lists, dictionaries, sentences, recordings and pictures.",
+        "Fonts: Onest, Unbounded, LXGW WenKai GB, Klee One, Noto Naskh Arabic (SIL OFL). Each content pack lists its own word lists, dictionaries, sentences, recordings and pictures.",
         style = MaterialTheme.typography.bodySmall, color = c.neutral.ink2,
       )
       var showCredits by remember { mutableStateOf(false) }
@@ -199,9 +199,13 @@ private fun DeckSettings(graph: AppGraph, lang: Lang) {
       Text("${cfg.newPerDay}", style = MaterialTheme.typography.titleMedium, color = c.neutral.ink)
       TextButton(onClick = { save(cfg.copy(newPerDay = (cfg.newPerDay + 5).coerceAtMost(50))) }, modifier = Modifier.semantics { contentDescription = "More new cards" }) { Text("+") }
     }
-    if (lang == Lang.ZH || lang.needsTransliteration) {
+    if (lang.hasCharacterReading || lang.needsTransliteration) {
       ToggleRow(
-        if (lang == Lang.ZH) "Show pinyin on the front" else "Show Latin letters on the front",
+        when (lang) {
+          Lang.ZH -> "Show pinyin on the front"
+          Lang.JA -> "Show kana and romaji on the front"
+          else -> "Show Latin letters on the front"
+        },
         "Easier, but you practise reading less",
         cfg.showReadingOnFront,
       ) { save(cfg.copy(showReadingOnFront = it)) }

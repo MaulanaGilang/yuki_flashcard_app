@@ -52,6 +52,7 @@ All values were checked with the WCAG formula. White text on every field passes 
 | DE German, **Ochre line** | `line.de` | `#8C5E00` | 5.65 | `#553900` | `#F1ECE0` |
 | FR French, **Iris line** | `line.fr` | `#6A3FD1` | 6.47 | `#3E2380` | `#EDE8F9` |
 | AR Arabic, **Olive line** | `line.ar` | `#4E7614` | 5.35 | `#2F470B` | `#EAEFE3` |
+| あ Japanese, **Ai (藍, indigo) line** | `line.ja` | `#1F5F8B` | 6.84 | `#123A57` | `#E3ECF3` |
 
 **Stations deepen as you go.** Each level's field is the line colour mixed toward *Deep*, so higher levels feel heavier and more serious. Contrast rises with depth.
 
@@ -126,6 +127,7 @@ Each face was chosen for a script job. All are free and open (OFL) and bundled i
 | **Display / signage**: station names, level bullets, big counts, the summary board | **Unbounded** | Wide, heavy and geometric, like metro signage and Drops' chunky confidence. Covers Latin and Cyrillic, so Russian line names render in the same voice. Used sparingly. |
 | **UI & body**: meanings, sentences (Latin/Cyrillic), labels, buttons | **Onest** | A clean modern grotesk designed with Cyrillic as a first-class script, so Russian never looks like a fallback. Tabular figures for stats. |
 | **Hanzi**: headwords, sentences, character detail | **LXGW WenKai (霞鹜文楷)** | A **Kai (楷)** face that matches handwriting and the stroke-order data, so what you see is what you write on paper. Subset to the characters in installed packs (≈ 3,000 for HSK 1–6, roughly 2–3 MB instead of ~20 MB). |
+| **Japanese**: headwords, kana readings, sentences, kana chart | **Klee One** (Fontworks, OFL) | The pen-style face LXGW WenKai was built from, so Japanese and Mandarin cards share one hand. It has Japanese kanji forms (not mainland GB forms) and full kana. Subset to kana plus the 2,965 JIS level-1 kanji and any extra pack characters (`pipeline/tools/subset_fonts.py`, ≈ 3.4 MB). The reading line shows kana over Hepburn romaji (`KanaGuide`, made in the app from the kana). |
 | **Arabic**: headwords, sentences, alphabet guide | **Noto Naskh Arabic** | Naskh is the clear book style learners read first, and it places every vowel mark (fatḥa, kasra, ḍamma, shadda, sukūn, tanwīn) cleanly. Taller line height (≈ 1.7×) so marks never clip. |
 | **Fallback** | Noto Sans / Noto Sans SC | For any glyph a face lacks. |
 

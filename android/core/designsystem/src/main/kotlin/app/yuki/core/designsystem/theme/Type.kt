@@ -27,20 +27,24 @@ val Onest = variable(R.font.onest_variable, 400, 500, 600, 700)
 /** Kai-style hanzi that match handwriting and the stroke data (mainland GB forms). */
 val WenKai = FontFamily(Font(R.font.lxgw_wenkai_gb, FontWeight.Normal))
 
+/** Japanese: Klee One, the pen-style face WenKai was built from, with Japanese kanji forms and kana. */
+val Klee = FontFamily(Font(R.font.klee_one, FontWeight.Normal))
+
 /** Naskh Arabic: the clear book style learners read first; renders every vowel mark. */
 val Naskh = variable(R.font.noto_naskh_arabic, 400, 500, 600, 700)
 
 /** The face for words and sentences in [lang]'s script. */
 fun scriptFamily(lang: app.yuki.core.model.Lang): FontFamily = when (lang.script) {
   app.yuki.core.model.Script.HAN -> WenKai
+  app.yuki.core.model.Script.JAPANESE -> Klee
   app.yuki.core.model.Script.ARABIC -> Naskh
   else -> Onest
 }
 
 /** Custom card roles (DESIGN-SYSTEM §3.1). */
 object YukiType {
-  fun glyphHero(chars: Int) = TextStyle(
-    fontFamily = WenKai,
+  fun glyphHero(chars: Int, family: FontFamily = WenKai) = TextStyle(
+    fontFamily = family,
     fontSize = when { chars <= 2 -> 88.sp; chars <= 4 -> 64.sp; else -> 44.sp },
     lineHeight = when { chars <= 2 -> 100.sp; chars <= 4 -> 76.sp; else -> 52.sp },
   )
@@ -48,6 +52,10 @@ object YukiType {
   val wordHero = TextStyle(fontFamily = Onest, fontWeight = FontWeight.Bold, fontSize = 44.sp, lineHeight = 52.sp)
   val reading = TextStyle(fontFamily = Onest, fontWeight = FontWeight.Medium, fontSize = 24.sp, lineHeight = 32.sp)
   val sentenceZh = TextStyle(fontFamily = WenKai, fontSize = 20.sp, lineHeight = 30.sp)
+  val sentenceJa = TextStyle(fontFamily = Klee, fontSize = 20.sp, lineHeight = 32.sp)
+
+  /** Sentence style for a character language (Mandarin or Japanese). */
+  fun sentenceFor(lang: app.yuki.core.model.Lang) = if (lang.script == app.yuki.core.model.Script.JAPANESE) sentenceJa else sentenceZh
   val station = TextStyle(fontFamily = Unbounded, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, lineHeight = 16.sp, letterSpacing = 0.08.em)
 }
 

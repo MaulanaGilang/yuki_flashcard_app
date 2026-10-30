@@ -72,5 +72,35 @@ class ScriptGuideTest {
     assertEquals(33, CyrillicGuide.alphabet.size)
     assertNull(ScriptGuide.of(Lang.ZH))
     assertTrue(Lang.AR.rtl && Lang.AR.needsTransliteration)
+    assertEquals(KanaGuide, ScriptGuide.of(Lang.JA))
+    assertTrue(Lang.JA.hasCharacterReading && !Lang.JA.needsTransliteration)
+  }
+
+  @Test
+  fun kanaToRomaji() {
+    assertEquals("taberu", KanaGuide.transliterate("たべる"))
+    assertEquals("gakkou", KanaGuide.transliterate("がっこう"))
+    assertEquals("kitte", KanaGuide.transliterate("きって"))
+    assertEquals("matcha", KanaGuide.transliterate("まっちゃ"))
+    assertEquals("toukyou", KanaGuide.transliterate("とうきょう"))
+    assertEquals("shashin", KanaGuide.transliterate("しゃしん"))
+    assertEquals("kon'ya", KanaGuide.transliterate("こんや"))
+    assertEquals("hon'ya", KanaGuide.transliterate("ほんや"))
+    assertEquals("konnichiha", KanaGuide.transliterate("こんにちは"))
+    assertEquals("koohii", KanaGuide.transliterate("コーヒー"))
+    assertEquals("paatii", KanaGuide.transliterate("パーティー"))
+    assertEquals("fairu", KanaGuide.transliterate("ファイル"))
+    assertEquals("chiizu", KanaGuide.transliterate("チーズ"))
+    assertEquals("watashi ha gakusei desu.", KanaGuide.transliterate("わたし は がくせい です。"))
+  }
+
+  @Test
+  fun kanaBreakdown() {
+    val units = KanaGuide.breakdown("きって")
+    assertEquals(listOf("き", "っ", "て"), units.map { it.glyph })
+    assertEquals("ki", units[0].latin)
+    assertEquals(listOf("きょ", "う"), KanaGuide.breakdown("きょう").map { it.glyph })
+    assertEquals(46, KanaGuide.alphabet.size)
+    assertEquals("あ ア", KanaGuide.alphabet.first().glyph)
   }
 }

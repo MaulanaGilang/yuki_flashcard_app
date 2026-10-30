@@ -185,7 +185,15 @@ fun LibraryScreen(viewModel: LibraryViewModel, contentPadding: PaddingValues, on
           onValueChange = viewModel::setQuery,
           modifier = Modifier.fillMaxWidth(),
           singleLine = true,
-          placeholder = { Text(if (state.lang == Lang.ZH) "Search 苹果, pingguo or apple" else "Search a word or its meaning") },
+          placeholder = {
+            Text(
+              when (state.lang) {
+                Lang.ZH -> "Search 苹果, pingguo or apple"
+                Lang.JA -> "Search 食べる, たべる, taberu or eat"
+                else -> "Search a word or its meaning"
+              },
+            )
+          },
           shape = CircleShape,
         )
         if (state.query.isBlank()) {
@@ -270,12 +278,17 @@ private fun WordRow(row: LibraryRow, selected: Boolean, onClick: () -> Unit, onL
   ) {
     Text(
       w.headword,
-      style = if (w.lang == Lang.ZH || w.lang.rtl) MaterialTheme.typography.titleLarge.copy(fontFamily = scriptFamily(w.lang)) else MaterialTheme.typography.titleMedium,
+      style = if (w.lang.hasCharacterReading || w.lang.rtl) MaterialTheme.typography.titleLarge.copy(fontFamily = scriptFamily(w.lang)) else MaterialTheme.typography.titleMedium,
       color = c.neutral.ink,
     )
     Spacer(Modifier.width(12.dp))
     Column(Modifier.weight(1f)) {
       if (w.lang == Lang.ZH && w.syllables.isNotEmpty()) Text(toneText(w.syllables, w.tones), style = MaterialTheme.typography.bodyMedium)
+      else if (w.lang == Lang.JA) Text(
+        listOf(w.reading.takeIf { it != w.headword }, app.yuki.core.model.script.KanaGuide.transliterate(w.reading.ifBlank { w.headword }))
+          .filterNot { it.isNullOrBlank() }.joinToString(" · "),
+        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = scriptFamily(w.lang)), color = c.neutral.ink2,
+      )
       else Text(w.reading, style = MaterialTheme.typography.bodyMedium, color = c.neutral.ink2)
       Text(row.gloss, style = MaterialTheme.typography.bodySmall, color = c.neutral.ink2, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }

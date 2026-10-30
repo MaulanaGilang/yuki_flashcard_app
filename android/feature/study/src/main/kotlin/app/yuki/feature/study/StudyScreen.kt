@@ -81,6 +81,7 @@ import app.yuki.core.designsystem.component.rememberReduceMotion
 import app.yuki.core.designsystem.component.toneText
 import app.yuki.core.designsystem.component.HowToReadPanel
 import app.yuki.core.designsystem.component.ScriptText
+import app.yuki.core.designsystem.component.KanaReading
 import app.yuki.core.designsystem.component.TransliterationLine
 import app.yuki.core.designsystem.theme.scriptFamily
 import app.yuki.core.designsystem.theme.Unbounded
@@ -221,16 +222,16 @@ private fun SessionTrack(position: Int, total: Int) {
 @Composable
 private fun ColumnScope.CardFront(ui: CardUi, onPlay: () -> Unit) {
   val word = ui.detail.word
-  val isZh = word.lang == Lang.ZH
+  val characters = word.lang.hasCharacterReading
   CardHeader(word.level.toString(), "${word.levelLabel} · ${word.pos}", ui.foil)
   ArtWindow(ui.art, Modifier.padding(top = 10.dp).weight(0.9f))
   Column(Modifier.weight(1f).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
     Headword(word.headword, word.lang)
     when {
       word.lang.needsTransliteration -> if (ui.showReadingOnFront) TransliterationLine(word.headword, word.lang)
-      !isZh || ui.showReadingOnFront -> ReadingLine(ui.detail)
+      !characters || ui.showReadingOnFront -> ReadingLine(ui.detail)
     }
-    word.gender?.let { if (!isZh) Text(it, style = MaterialTheme.typography.bodyMedium, color = Yuki.colors.neutral.ink2) }
+    word.gender?.let { if (!characters) Text(it, style = MaterialTheme.typography.bodyMedium, color = Yuki.colors.neutral.ink2) }
   }
   Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
     AudioButton(onPlay, enabled = ui.detail.wordAudio != null, contentDescription = "Play pronunciation")
@@ -275,7 +276,7 @@ private fun ColumnScope.ProductionFront(ui: CardUi) {
     if (word.pos.isNotBlank()) Text(word.pos, style = MaterialTheme.typography.bodyMedium, color = c.neutral.ink2)
     Spacer(Modifier.height(10.dp))
     Text(
-      if (word.lang == Lang.ZH) "Say it, then write it on paper" else "Say it in ${word.lang.englishName}",
+      if (word.lang.hasCharacterReading) "Say it, then write it on paper" else "Say it in ${word.lang.englishName}",
       style = MaterialTheme.typography.bodySmall, color = c.neutral.ink2,
     )
   }
@@ -286,6 +287,8 @@ private fun ReadingLine(detail: WordDetail) {
   val word = detail.word
   if (word.lang == Lang.ZH && word.syllables.isNotEmpty()) {
     Text(toneText(word.syllables, word.tones), style = YukiType.reading, textAlign = TextAlign.Center)
+  } else if (word.lang == Lang.JA) {
+    KanaReading(word.headword, word.reading)
   } else {
     Text(word.reading, style = YukiType.reading, color = Yuki.colors.neutral.ink2, textAlign = TextAlign.Center)
   }
@@ -296,19 +299,21 @@ private fun ReadingLine(detail: WordDetail) {
 private fun ColumnScope.CardBack(ui: CardUi, onPlayWord: () -> Unit, onPlaySentence: (Int) -> Unit) {
   val detail = ui.detail
   val word = detail.word
-  val isZh = word.lang == Lang.ZH
+  val characters = word.lang.hasCharacterReading
   val c = Yuki.colors
   var strokeSheet by remember { mutableStateOf<Hanzi?>(null) }
   var readSheet by remember { mutableStateOf(false) }
   val guide = remember(word.lang) { app.yuki.core.model.script.ScriptGuide.of(word.lang) }
-  val canExplainReading = guide != null && (word.lang.needsTransliteration || guide.hints(word.headword).isNotEmpty())
+  // Japanese is read from its kana reading; kanji have no letter-by-letter sound.
+  val readable = if (word.lang == Lang.JA) word.reading.ifBlank { word.headword } else word.headword
+  val canExplainReading = guide != null && (word.lang.needsTransliteration || word.lang == Lang.JA || guide.hints(readable).isNotEmpty())
   CardHeader(word.level.toString(), word.levelLabel, ui.foil)
   Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
     Row(Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
       Text(
         word.headword,
         style = when {
-          isZh -> YukiType.sentenceZh.copy(fontSize = 34.sp, lineHeight = 42.sp)
+          characters -> YukiType.sentenceFor(word.lang).copy(fontSize = 34.sp, lineHeight = 42.sp)
           word.lang.rtl -> MaterialTheme.typography.headlineSmall.copy(fontFamily = scriptFamily(word.lang), fontSize = 30.sp, lineHeight = 52.sp)
           else -> MaterialTheme.typography.headlineSmall.copy(fontFamily = app.yuki.core.designsystem.theme.Onest, fontWeight = FontWeight.Bold)
         },
@@ -355,7 +360,7 @@ private fun ColumnScope.CardBack(ui: CardUi, onPlayWord: () -> Unit, onPlaySente
         if (s.audioPath != null) AudioButton({ onPlaySentence(0) }, enabled = true, contentDescription = "Play example sentence", small = true)
       }
     }
-    if (isZh && detail.characters.isNotEmpty()) {
+    if (characters && detail.characters.isNotEmpty()) {
       CardDivider()
       Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         detail.characters.forEach { h ->
@@ -377,7 +382,7 @@ private fun ColumnScope.CardBack(ui: CardUi, onPlayWord: () -> Unit, onPlaySente
     ModalBottomSheet(onDismissRequest = { readSheet = false }, containerColor = c.neutral.surface) {
       Column(Modifier.padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(guide.title, style = MaterialTheme.typography.titleLarge, color = c.neutral.ink)
-        HowToReadPanel(word.headword, word.lang)
+        HowToReadPanel(readable, word.lang)
       }
     }
   }
@@ -430,7 +435,7 @@ private fun SummaryContent(summary: SessionSummary, nextLang: Lang?, onClose: ()
     BoardRow("New foils", "+${summary.newFoils}", "", "")
     if (summary.missed.isNotEmpty()) {
       Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = 0.2f)))
-      Text("Missed: " + summary.missed.joinToString(" · "), color = Color.White, style = if (summary.lang == Lang.ZH) YukiType.sentenceZh else MaterialTheme.typography.bodyLarge)
+      Text("Missed: " + summary.missed.joinToString(" · "), color = Color.White, style = if (summary.lang.hasCharacterReading) YukiType.sentenceFor(summary.lang) else MaterialTheme.typography.bodyLarge)
     }
     if (summary.reviewedMissed) {
       Text("Missed words reviewed. They come back on their normal schedule.", color = Color.White.copy(alpha = 0.85f), style = MaterialTheme.typography.bodyMedium)

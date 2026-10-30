@@ -52,6 +52,7 @@ import app.yuki.core.designsystem.component.HowToWrite
 import app.yuki.core.designsystem.component.toneText
 import app.yuki.core.designsystem.component.HowToReadPanel
 import app.yuki.core.designsystem.component.ScriptText
+import app.yuki.core.designsystem.component.KanaReading
 import app.yuki.core.designsystem.component.TransliterationLine
 import app.yuki.core.model.script.ScriptGuide
 import app.yuki.core.designsystem.theme.Yuki
@@ -149,6 +150,8 @@ fun WordDetailScreen(viewModel: WordDetailViewModel, onBack: () -> Unit) {
     if (detail == null) return@Column
     val word = detail.word
     val isZh = word.lang == Lang.ZH
+    // Japanese is read from its kana reading; kanji have no letter-by-letter sound.
+    val readable = if (word.lang == Lang.JA) word.reading.ifBlank { word.headword } else word.headword
     Column(
       Modifier.fillMaxWidth().background(c.neutral.surface, RoundedCornerShape(24.dp)).padding(20.dp),
       horizontalAlignment = Alignment.CenterHorizontally,
@@ -156,6 +159,7 @@ fun WordDetailScreen(viewModel: WordDetailViewModel, onBack: () -> Unit) {
       SectionLabel("${word.levelLabel} · ${word.pos} · ${state.foil.name.lowercase()}")
       Headword(word.headword, word.lang)
       if (isZh && word.syllables.isNotEmpty()) Text(toneText(word.syllables, word.tones, separator = " "), style = YukiType.reading)
+      else if (word.lang == Lang.JA) KanaReading(word.headword, word.reading)
       else {
         if (word.lang.needsTransliteration) TransliterationLine(word.headword, word.lang)
         Text(word.reading, style = YukiType.reading, color = c.neutral.ink2)
@@ -188,13 +192,13 @@ fun WordDetailScreen(viewModel: WordDetailViewModel, onBack: () -> Unit) {
       }
     }
     val guide = ScriptGuide.of(word.lang)
-    if (guide != null && (word.lang.needsTransliteration || guide.hints(word.headword).isNotEmpty())) {
+    if (guide != null && (word.lang.needsTransliteration || word.lang == Lang.JA || guide.hints(readable).isNotEmpty())) {
       Column(Modifier.fillMaxWidth().background(c.neutral.surface, RoundedCornerShape(24.dp)).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionLabel("How to read")
-        HowToReadPanel(word.headword, word.lang)
+        HowToReadPanel(readable, word.lang)
       }
     }
-    if (isZh && detail.characters.isNotEmpty()) {
+    if (word.lang.hasCharacterReading && detail.characters.isNotEmpty()) {
       Column(Modifier.fillMaxWidth().background(c.neutral.surface, RoundedCornerShape(24.dp)).padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         HowToWrite(detail.characters)
       }
