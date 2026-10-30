@@ -85,6 +85,7 @@ fun TodayScreen(
   contentPadding: PaddingValues,
   onStart: (Lang) -> Unit,
   onCheckpoint: (Lang, Int, String) -> Unit = { _, _, _ -> },
+  onStudyAll: (List<Lang>) -> Unit = {},
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
   val c = Yuki.colors
@@ -119,6 +120,18 @@ fun TodayScreen(
           style = MaterialTheme.typography.bodyLarge,
           color = c.neutral.ink2,
         )
+      }
+    }
+    val withWork = state.lines.filter { it.dueToday + it.newToday > 0 }
+    if (withWork.size > 1) {
+      item {
+        val cards = withWork.sumOf { it.dueToday + it.newToday }
+        Button(
+          onClick = { onStudyAll(withWork.map { it.lang }) },
+          modifier = Modifier.fillMaxWidth().height(52.dp),
+          shape = CircleShape,
+          colors = ButtonDefaults.buttonColors(containerColor = c.neutral.ink, contentColor = Color.White),
+        ) { Text("Study all · ${withWork.size} languages · $cards cards", style = MaterialTheme.typography.titleSmall) }
       }
     }
     items(state.lines, key = { it.lang.code }) { line ->

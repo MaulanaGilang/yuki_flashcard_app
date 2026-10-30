@@ -60,7 +60,8 @@ import kotlinx.serialization.Serializable
 @Serializable data object SettingsKey : NavKey
 @Serializable data object StatsKey : NavKey
 @Serializable data class CheckpointKey(val lang: String, val level: Int, val label: String) : NavKey
-@Serializable data class StudyKey(val lang: String) : NavKey
+/** [next]: languages still queued by "Study all" (PRD S11), run after this one. */
+@Serializable data class StudyKey(val lang: String, val next: List<String> = emptyList()) : NavKey
 @Serializable data class WordKey(val wordId: String) : NavKey
 @Serializable data class AlphabetKey(val lang: String) : NavKey
 
@@ -139,6 +140,7 @@ fun YukiNavigation(graph: AppGraph, openWord: String? = null, onWordOpened: () -
           TodayScreen(
             vm, padding,
             onStart = { lang -> backStack.add(StudyKey(lang.code)) },
+            onStudyAll = { langs -> if (langs.isNotEmpty()) backStack.add(StudyKey(langs.first().code, langs.drop(1).map { it.code })) },
             onCheckpoint = { lang, level, label -> backStack.add(CheckpointKey(lang.code, level, label)) },
           )
         }
@@ -164,7 +166,16 @@ fun YukiNavigation(graph: AppGraph, openWord: String? = null, onWordOpened: () -
           val lang = Lang.fromCode(key.lang)
           YukiTheme(lang) {
             val vm = viewModel { StudyViewModel(lang, graph.study, graph.packs, graph.audio, graph.clock) }
-            StudyScreen(vm, onClose = { backStack.removeLastOrNull() }, onOpenWord = { backStack.add(WordKey(it)) })
+            StudyScreen(
+              vm,
+              onClose = { backStack.removeLastOrNull() },
+              onOpenWord = { backStack.add(WordKey(it)) },
+              nextLang = key.next.firstOrNull()?.let(Lang::fromCode),
+              onFinished = {
+                backStack.removeLastOrNull()
+                key.next.firstOrNull()?.let { backStack.add(StudyKey(it, key.next.drop(1))) }
+              },
+            )
           }
         }
         entry<AlphabetKey> { key ->

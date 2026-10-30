@@ -95,7 +95,15 @@ import app.yuki.core.model.Rating
 import app.yuki.core.model.WordDetail
 
 @Composable
-fun StudyScreen(viewModel: StudyViewModel, onClose: () -> Unit, onOpenWord: (String) -> Unit) {
+fun StudyScreen(
+  viewModel: StudyViewModel,
+  onClose: () -> Unit,
+  onOpenWord: (String) -> Unit,
+  /** "Study all" (PRD S11): the next language in the queue, shown on the Done button. */
+  nextLang: Lang? = null,
+  /** Session over (Done / nothing due); defaults to closing. */
+  onFinished: () -> Unit = onClose,
+) {
   val state by viewModel.state.collectAsStateWithLifecycle()
   val view = LocalView.current
   LaunchedEffect(viewModel) {
@@ -124,9 +132,9 @@ fun StudyScreen(viewModel: StudyViewModel, onClose: () -> Unit, onOpenWord: (Str
   Box(Modifier.fillMaxSize().background(if (state is StudyUiState.Finished) c.line.deep else c.field)) {
     when (val s = state) {
       StudyUiState.Loading -> Unit
-      is StudyUiState.Empty -> EmptySession(s.lang, onClose)
+      is StudyUiState.Empty -> EmptySession(s.lang, nextLang, onFinished)
       is StudyUiState.Studying -> StudyingContent(s.ui, viewModel, onClose)
-      is StudyUiState.Finished -> SummaryContent(s.summary, onClose, onReviewMissed = viewModel::startExtraRound)
+      is StudyUiState.Finished -> SummaryContent(s.summary, nextLang, onFinished, onReviewMissed = viewModel::startExtraRound)
     }
   }
 }
@@ -389,7 +397,7 @@ private fun ColumnScope.CardBack(ui: CardUi, onPlayWord: () -> Unit, onPlaySente
 }
 
 @Composable
-private fun EmptySession(lang: Lang, onClose: () -> Unit) {
+private fun EmptySession(lang: Lang, nextLang: Lang?, onClose: () -> Unit) {
   Column(
     Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).padding(24.dp),
     verticalArrangement = Arrangement.Center,
@@ -401,12 +409,12 @@ private fun EmptySession(lang: Lang, onClose: () -> Unit) {
     Spacer(Modifier.height(8.dp))
     Text("Nothing is due in ${lang.englishName} right now, and today's new cards are done.", color = Color.White.copy(alpha = 0.9f), textAlign = TextAlign.Center)
     Spacer(Modifier.height(24.dp))
-    Button(onClick = onClose, colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Yuki.colors.line.field)) { Text("Back to Today") }
+    Button(onClick = onClose, colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Yuki.colors.line.field)) { Text(nextLang?.let { "Next: ${it.englishName}" } ?: "Back to Today") }
   }
 }
 
 @Composable
-private fun SummaryContent(summary: SessionSummary, onClose: () -> Unit, onReviewMissed: () -> Unit) {
+private fun SummaryContent(summary: SessionSummary, nextLang: Lang?, onClose: () -> Unit, onReviewMissed: () -> Unit) {
   Column(
     Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).padding(24.dp),
     verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -442,7 +450,7 @@ private fun SummaryContent(summary: SessionSummary, onClose: () -> Unit, onRevie
       modifier = Modifier.fillMaxWidth().height(52.dp),
       shape = CircleShape,
       colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Yuki.colors.line.deep),
-    ) { Text("Done", style = MaterialTheme.typography.titleMedium) }
+    ) { Text(nextLang?.let { "Next: ${it.englishName}" } ?: "Done", style = MaterialTheme.typography.titleMedium) }
   }
 }
 

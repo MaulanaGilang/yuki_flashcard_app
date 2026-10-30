@@ -70,12 +70,20 @@ abstract class CardDao {
   abstract suspend fun duesBefore(until: Instant): List<Instant>
 
   /** Onboarding / checkpoint: skip every still-new card below [belowRank] (newRank = level * 100 000 + freq). */
-  @Query("UPDATE card SET markedKnown = 1 WHERE lang = :lang AND state = 'NEW' AND newRank < :belowRank")
+  @Query("UPDATE card SET markedKnown = 1 WHERE lang = :lang AND state = 'NEW' AND newRank >= 0 AND newRank < :belowRank")
   abstract suspend fun markKnownBelow(lang: String, belowRank: Int)
 
   /** Checkpoint pass: every still-new card of one level becomes known. */
   @Query("UPDATE card SET markedKnown = 1 WHERE lang = :lang AND state = 'NEW' AND newRank >= :fromRank AND newRank < :toRank")
   abstract suspend fun markKnownBetween(lang: String, fromRank: Int, toRank: Int)
+
+  /** "Study now" (PRD S9) for a word already in review: due right away. */
+  @Query("UPDATE card SET due = :now WHERE wordId = :wordId AND state != 'NEW'")
+  abstract suspend fun makeDue(wordId: String, now: Instant)
+
+  /** "Study now" for a new word: first in line among new cards. */
+  @Query("UPDATE card SET newRank = -1, markedKnown = 0, suspended = 0 WHERE wordId = :wordId AND state = 'NEW' AND type = 'RECOGNITION'")
+  abstract suspend fun moveToFrontOfNew(wordId: String)
 
   /** A pack imported from file takes over its language's existing cards (stable word ids keep progress). */
   @Query("UPDATE card SET packId = :packId, orphaned = 0 WHERE wordId IN (:wordIds)")
@@ -155,6 +163,10 @@ abstract class ReviewLogDao {
 
   @Query("SELECT reviewedAt FROM review_log WHERE kind = 'SCHEDULED' ORDER BY reviewedAt DESC LIMIT 5000")
   abstract fun observeRecentTimes(): Flow<List<Instant>>
+
+  /** Library filter "rated Again in the last 7 days" (PRD S8). */
+  @Query("SELECT DISTINCT cardId FROM review_log WHERE lang = :lang AND reviewedAt >= :since AND rating = 1")
+  abstract suspend fun cardsRatedAgainSince(lang: String, since: Instant): List<String>
 
   /** Cards reviewed since [since]; their siblings are buried for the rest of the day (PRD S6). */
   @Query("SELECT DISTINCT cardId FROM review_log WHERE lang = :lang AND reviewedAt >= :since AND kind = 'SCHEDULED'")

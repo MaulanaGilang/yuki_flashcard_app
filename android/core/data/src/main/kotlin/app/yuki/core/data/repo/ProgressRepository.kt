@@ -165,6 +165,43 @@ class ProgressRepository(
 
   suspend fun cardsForWord(wordId: String) = holder.db.cardDao().forWord(wordId)
 
+  /** The word's main (recognition) card, which drives its status, foil and due date. */
+  suspend fun mainCard(wordId: String) = cardsForWord(wordId).firstOrNull { it.type == app.yuki.core.model.CardType.RECOGNITION }
+
+  /**
+   * "Reset progress" (PRD S9): every card of the word goes back to new. A MANUAL_RESET log row
+   * per card keeps the history honest; stats only count SCHEDULED rows.
+   */
+  suspend fun resetWord(wordId: String) {
+    val db = holder.db
+    val now = clock.instant()
+    db.cardDao().forWord(wordId).forEach { card ->
+      db.studyDao().applyAnswer(
+        app.yuki.core.data.db.ReviewLogEntity(
+          cardId = card.id, lang = card.lang, rating = 0, reviewedAt = now, durationMs = 0,
+          beforeState = card.state, before = app.yuki.core.data.db.CardSnapshot.of(card.memory),
+          after = app.yuki.core.data.db.CardSnapshot.of(app.yuki.core.model.Memory.NEW),
+          sessionId = "manual-reset", kind = app.yuki.core.data.db.ReviewKind.MANUAL_RESET,
+        ),
+        card.withMemory(app.yuki.core.model.Memory.NEW).copy(markedKnown = false),
+      )
+    }
+  }
+
+  /** "Study now" (PRD S9): due today if already learned; otherwise the next new card. */
+  suspend fun studyNow(wordId: String) {
+    val dao = holder.db.cardDao()
+    dao.makeDue(wordId, clock.instant())
+    dao.moveToFrontOfNew(wordId)
+  }
+
+  /** Word ids for the Library's history filters (PRD S8). */
+  suspend fun wordsRatedAgainLastWeek(lang: Lang): Set<String> =
+    holder.db.reviewLogDao().cardsRatedAgainSince(lang.code, clock.instant().minus(java.time.Duration.ofDays(7))).map { it.substringBefore('#') }.toSet()
+
+  suspend fun wordsStudiedToday(lang: Lang): Set<String> =
+    holder.db.reviewLogDao().cardsReviewedSince(lang.code, studyDay().start(clock.instant())).map { it.substringBefore('#') }.toSet()
+
   suspend fun historyForWord(wordId: String) =
     holder.db.cardDao().forWord(wordId).flatMap { holder.db.reviewLogDao().forCard(it.id) }.sortedBy { it.reviewedAt }
 

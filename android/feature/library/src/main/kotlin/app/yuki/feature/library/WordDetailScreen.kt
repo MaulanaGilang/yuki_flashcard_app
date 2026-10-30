@@ -27,6 +27,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
@@ -70,6 +73,8 @@ data class WordDetailUiState(
   val markedKnown: Boolean = false,
   val dueText: String? = null,
   val foil: FoilTier = FoilTier.NEW,
+  /** One-line confirmation after an action, e.g. "Added to today's cards". */
+  val note: String? = null,
 )
 
 class WordDetailViewModel(
@@ -87,7 +92,7 @@ class WordDetailViewModel(
 
   private fun refresh() = viewModelScope.launch {
     val detail = study.detail(wordId)
-    val card = progress.cardsForWord(wordId).firstOrNull()
+    val card = progress.mainCard(wordId)
     val due = card?.due?.atZone(ZoneId.systemDefault())?.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH))
     _state.value = WordDetailUiState(
       detail = detail,
@@ -108,6 +113,19 @@ class WordDetailViewModel(
   fun toggleKnown() = viewModelScope.launch {
     progress.setMarkedKnown(wordId, !_state.value.markedKnown)
     refresh()
+  }
+
+  fun studyNow() = viewModelScope.launch {
+    val wasNew = _state.value.history.isEmpty()
+    progress.studyNow(wordId)
+    refresh().join()
+    _state.value = _state.value.copy(note = if (wasNew) "It's your next new card." else "Added to today's reviews.")
+  }
+
+  fun reset() = viewModelScope.launch {
+    progress.resetWord(wordId)
+    refresh().join()
+    _state.value = _state.value.copy(note = "Progress reset. It comes back as a new card.")
   }
 
   fun play(path: String) = audio.play(wordId, path)
@@ -200,6 +218,21 @@ fun WordDetailScreen(viewModel: WordDetailViewModel, onBack: () -> Unit) {
       Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedButton(onClick = viewModel::toggleSuspended, shape = CircleShape) { Text(if (state.suspended) "Unsuspend" else "Suspend") }
         OutlinedButton(onClick = viewModel::toggleKnown, shape = CircleShape) { Text(if (state.markedKnown) "Unmark known" else "Mark as known") }
+      }
+      var confirmReset by remember { mutableStateOf(false) }
+      androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedButton(onClick = viewModel::studyNow, shape = CircleShape) { Text("Study now") }
+        if (state.history.isNotEmpty()) OutlinedButton(onClick = { confirmReset = true }, shape = CircleShape) { Text("Reset progress") }
+      }
+      state.note?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = c.neutral.ink2) }
+      if (confirmReset) {
+        androidx.compose.material3.AlertDialog(
+          onDismissRequest = { confirmReset = false },
+          title = { Text("Reset this word?") },
+          text = { Text("It goes back to new, as if you'd never studied it. Its review history stays in the list.") },
+          confirmButton = { androidx.compose.material3.TextButton(onClick = { confirmReset = false; viewModel.reset() }) { Text("Reset") } },
+          dismissButton = { androidx.compose.material3.TextButton(onClick = { confirmReset = false }) { Text("Cancel") } },
+        )
       }
     }
   }

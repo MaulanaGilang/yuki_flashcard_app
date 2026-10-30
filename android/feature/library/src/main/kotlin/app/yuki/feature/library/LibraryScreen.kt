@@ -1,7 +1,7 @@
 package app.yuki.feature.library
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,6 +24,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,8 +59,14 @@ data class LibraryUiState(
   val level: Int? = null,
   val query: String = "",
   val statusFilter: WordStatus? = null,
+  val history: HistoryFilter? = null,
   val rows: List<LibraryRow> = emptyList(),
+  /** Word ids picked with a long press, for bulk actions (PRD S9). */
+  val selected: Set<String> = emptySet(),
 )
+
+/** Library filters from your review history (PRD S8). */
+enum class HistoryFilter(val label: String) { AGAIN_7D("Again in last 7 days"), TODAY("Studied today") }
 
 @OptIn(FlowPreview::class)
 class LibraryViewModel(private val progress: ProgressRepository, packs: PackRegistry) : ViewModel() {
@@ -93,6 +100,40 @@ class LibraryViewModel(private val progress: ProgressRepository, packs: PackRegi
     viewModelScope.launch { refresh() }
   }
 
+  fun setHistory(filter: HistoryFilter?) {
+    _state.value = _state.value.copy(history = filter)
+    viewModelScope.launch { refresh() }
+  }
+
+  fun toggleSelected(wordId: String) {
+    val s = _state.value.selected
+    _state.value = _state.value.copy(selected = if (wordId in s) s - wordId else s + wordId)
+  }
+
+  fun selectAllShown() {
+    _state.value = _state.value.copy(selected = _state.value.rows.map { it.word.id }.toSet())
+  }
+
+  fun clearSelection() {
+    _state.value = _state.value.copy(selected = emptySet())
+  }
+
+  /** Bulk actions on the selected words; the list refreshes and the selection clears. */
+  fun bulk(action: BulkAction) = viewModelScope.launch {
+    val ids = _state.value.selected
+    ids.forEach { id ->
+      when (action) {
+        BulkAction.SUSPEND -> progress.setSuspended(id, true)
+        BulkAction.UNSUSPEND -> progress.setSuspended(id, false)
+        BulkAction.MARK_KNOWN -> progress.setMarkedKnown(id, true)
+        BulkAction.RESET -> progress.resetWord(id)
+        BulkAction.STUDY_NOW -> progress.studyNow(id)
+      }
+    }
+    _state.value = _state.value.copy(selected = emptySet())
+    refresh()
+  }
+
   fun setQuery(q: String) {
     _state.value = _state.value.copy(query = q)
     queries.value = q
@@ -102,7 +143,14 @@ class LibraryViewModel(private val progress: ProgressRepository, packs: PackRegi
     val s = _state.value
     val lang = s.lang ?: return
     val rows = if (s.query.isNotBlank()) progress.search(lang, s.query) else s.level?.let { progress.browse(lang, it) }.orEmpty()
-    _state.value = _state.value.copy(rows = rows.filter { s.statusFilter == null || it.status == s.statusFilter })
+    val history = when (s.history) {
+      null -> null
+      HistoryFilter.AGAIN_7D -> progress.wordsRatedAgainLastWeek(lang)
+      HistoryFilter.TODAY -> progress.wordsStudiedToday(lang)
+    }
+    _state.value = _state.value.copy(
+      rows = rows.filter { (s.statusFilter == null || it.status == s.statusFilter) && (history == null || it.word.id in history) },
+    )
   }
 }
 
@@ -153,21 +201,71 @@ fun LibraryScreen(viewModel: LibraryViewModel, contentPadding: PaddingValues, on
             FilterChip(selected = state.statusFilter == s, onClick = { viewModel.setStatusFilter(s) }, label = { Text(s.label()) })
           }
         }
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+          HistoryFilter.entries.forEach { h ->
+            FilterChip(selected = state.history == h, onClick = { viewModel.setHistory(if (state.history == h) null else h) }, label = { Text(h.label) })
+          }
+        }
+        if (state.selected.isNotEmpty()) BulkBar(state, viewModel)
+        else if (state.rows.isNotEmpty()) Text("Long-press a word to select several.", style = MaterialTheme.typography.bodySmall, color = c.neutral.ink2)
       }
     }
     items(state.rows, key = { it.word.id }) { row ->
-      WordRow(row, onClick = { onOpenWord(row.word.id) })
+      val selecting = state.selected.isNotEmpty()
+      WordRow(
+        row,
+        selected = row.word.id in state.selected,
+        onClick = { if (selecting) viewModel.toggleSelected(row.word.id) else onOpenWord(row.word.id) },
+        onLongClick = { viewModel.toggleSelected(row.word.id) },
+      )
       HorizontalDivider(Modifier.padding(start = 16.dp), color = c.neutral.outline)
     }
   }
 }
 
+enum class BulkAction(val label: String) { STUDY_NOW("Study now"), SUSPEND("Suspend"), UNSUSPEND("Unsuspend"), MARK_KNOWN("Mark known"), RESET("Reset") }
+
 @Composable
-private fun WordRow(row: LibraryRow, onClick: () -> Unit) {
+private fun BulkBar(state: LibraryUiState, viewModel: LibraryViewModel) {
+  val c = Yuki.colors
+  var confirmReset by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+  Column(
+    Modifier.fillMaxWidth().background(c.artTint, androidx.compose.foundation.shape.RoundedCornerShape(16.dp)).padding(12.dp),
+    verticalArrangement = Arrangement.spacedBy(6.dp),
+  ) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      Text("${state.selected.size} selected", style = MaterialTheme.typography.titleSmall, color = c.neutral.ink, modifier = Modifier.weight(1f))
+      androidx.compose.material3.TextButton(onClick = viewModel::selectAllShown) { Text("All ${state.rows.size}") }
+      androidx.compose.material3.TextButton(onClick = viewModel::clearSelection) { Text("Cancel") }
+    }
+    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+      BulkAction.entries.forEach { a ->
+        AssistChip(onClick = { if (a == BulkAction.RESET) confirmReset = true else viewModel.bulk(a) }, label = { Text(a.label) })
+      }
+    }
+  }
+  if (confirmReset) {
+    androidx.compose.material3.AlertDialog(
+      onDismissRequest = { confirmReset = false },
+      title = { Text("Reset ${state.selected.size} words?") },
+      text = { Text("They go back to new, as if you'd never studied them.") },
+      confirmButton = { androidx.compose.material3.TextButton(onClick = { confirmReset = false; viewModel.bulk(BulkAction.RESET) }) { Text("Reset") } },
+      dismissButton = { androidx.compose.material3.TextButton(onClick = { confirmReset = false }) { Text("Cancel") } },
+    )
+  }
+}
+
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+private fun WordRow(row: LibraryRow, selected: Boolean, onClick: () -> Unit, onLongClick: () -> Unit) {
   val c = Yuki.colors
   val w = row.word
   Row(
-    Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 12.dp),
+    Modifier
+      .fillMaxWidth()
+      .background(if (selected) c.artTint else androidx.compose.ui.graphics.Color.Transparent)
+      .combinedClickable(onClickLabel = "Open", onLongClickLabel = if (selected) "Unselect" else "Select", onLongClick = onLongClick, onClick = onClick)
+      .padding(horizontal = 16.dp, vertical = 12.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Text(
