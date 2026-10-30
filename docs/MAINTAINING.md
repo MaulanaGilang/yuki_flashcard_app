@@ -62,11 +62,26 @@ The pack lands in `packs\<id>\`, with a `.kpack` file next to it.
 
 ## Pictures: the daily job
 
-Cloudflare's free tier makes about 170 pictures a day. `pipeline\tools\daily.ps1` makes today's batch, then re-packages. To run it every morning automatically, register it once with Windows Task Scheduler (the exact command is in `pipeline\README.md`), roughly:
+Cloudflare's free tier makes about 170 pictures a day. `pipeline\tools\daily.ps1` makes today's batch, swaps in human recordings that were blocked before, then re-packages. It skips itself (and logs `skip: pipeline busy`) while a long build is running.
+
+It's registered in Windows Task Scheduler as **`yuki-daily`**, every day at 07:30 (set up 30 Oct 2026). If the laptop was off at 07:30, it runs as soon as it's back on. To re-create it on a new laptop:
 ```powershell
-schtasks /Create /SC DAILY /ST 07:30 /TN "Yuki daily images" /TR "powershell -NoProfile -ExecutionPolicy Bypass -File D:\Archive\Karir\Flashcard-App\pipeline\tools\daily.ps1"
+$a = New-ScheduledTaskAction -Execute powershell.exe -Argument '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "D:\Archive\Karir\Flashcard-App\pipeline\tools\daily.ps1"' -WorkingDirectory 'D:\Archive\Karir\Flashcard-App\pipeline'
+$s = New-ScheduledTaskSettingsSet -StartWhenAvailable -WakeToRun -AllowStartIfOnBatteries -ExecutionTimeLimit (New-TimeSpan -Hours 6) -MultipleInstances IgnoreNew
+Register-ScheduledTask -TaskName yuki-daily -Action $a -Trigger (New-ScheduledTaskTrigger -Daily -At 07:30) -Settings $s
 ```
-It needs the laptop on and online at that time; if it misses a day, nothing breaks. Every week or two, install the refreshed `.kpack`s on the phone to get the new pictures.
+Run it now: `Start-ScheduledTask yuki-daily`. Check it: `Get-Content pipeline\work\daily.log -Tail 20`. If it misses a day, nothing breaks. Every week or two, install the refreshed `.kpack`s on the phone to get the new pictures.
+
+**When the log shows a problem:**
+
+| What you see | Fix |
+|---|---|
+| Nothing new in the log for days | The laptop was off or asleep. Run `Start-ScheduledTask yuki-daily`. |
+| `429` or `rate limit` | Nothing; it retries tomorrow. |
+| `evaluate FAILED` | Usually pictures still pending. The previous pack stays usable. Open `pipeline\work\<pack>\report.html` to see which check failed. |
+| `401` / `403` from Cloudflare | The API token expired. Make a new one at dash.cloudflare.com and replace `CF_API_TOKEN` in `pipeline\.env`. |
+| `No module named ...` | In `pipeline`: `.venv\Scripts\python -m pip install -r requirements.txt` |
+| Anything else | Run `powershell -ExecutionPolicy Bypass -File tools\daily.ps1` in `pipeline` and read the last error. Worst case, disable the task: packs already on the phone keep working. |
 
 ## Backups and restoring
 
