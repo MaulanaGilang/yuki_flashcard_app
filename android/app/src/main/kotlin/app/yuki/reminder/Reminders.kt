@@ -74,7 +74,7 @@ object Reminders {
     val notification = NotificationCompat.Builder(context, CHANNEL)
       .setSmallIcon(R.drawable.ic_stat_yuki)
       .setLargeIcon(ContextCompat.getDrawable(context, R.drawable.yuki_bust_wave)?.toBitmap(256, 256))
-      .setColor(0xFFD63A22.toInt())
+      .setColor(0xFF7A1F2B.toInt()) // Brand.Maroon
       .setContentTitle(title)
       .setContentText(text)
       .setStyle(NotificationCompat.BigTextStyle().bigText(text))

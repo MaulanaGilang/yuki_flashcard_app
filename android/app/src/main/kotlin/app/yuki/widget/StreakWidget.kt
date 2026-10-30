@@ -80,7 +80,7 @@ class StreakWidget : GlanceAppWidget() {
 private val Ground = ColorProvider(day = Color(0xFFFFF4EE), night = Color(0xFF231915))
 private val Ink = ColorProvider(day = Color(0xFF14161B), night = Color(0xFFF1F2F4))
 private val Ink2 = ColorProvider(day = Color(0xFF4A505C), night = Color(0xFFA6ACB8))
-private val Flame = ColorProvider(day = Color(0xFFD63A22), night = Color(0xFFFF7A5C))
+private val Flame = ColorProvider(day = Color(0xFF7A1F2B), night = Color(0xFFE07A86)) // Brand.Maroon
 private val Dim = ColorProvider(day = Color(0xFF8A8F99), night = Color(0xFF7D828C))
 
 @Composable

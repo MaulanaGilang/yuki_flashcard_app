@@ -242,7 +242,7 @@ Priority: **P0** = MVP, **P1** = v1.1, **P2** = later.
 #### Yuki, the mascot
 
 **S19 (P0). As a learner, I want Yuki to cheer me on and remind me, so that studying feels friendly and I keep my streak.**
-- Yuki is a flat snow spirit drawn like a transit pictogram, with a scarf in the current language's line colour, and four poses: waving, celebrating, worried, sleepy. (Changed 30 Oct 2026 from a 2D chibi girl made from the owner's AI-generated reference; see DESIGN-SYSTEM §5.13.)
+- Yuki is an ink-line avatar (black lines, white fills) whose scarf and snowflake hair clip take the current language's line colour, or brand maroon on neutral screens, with four poses: waving, celebrating, worried, sleepy. (Changed 30 Oct 2026 from a 2D chibi girl made from the owner's AI-generated reference; see DESIGN-SYSTEM §5.13.)
 - **Today:** Yuki with a speech bubble at the top. Her mood and line follow the day:
   - no languages yet → waves hello,
   - studied today → celebrates (or sleeps late at night),
@@ -252,7 +252,7 @@ Priority: **P0** = MVP, **P1** = v1.1, **P2** = later.
 - **Session summary:** Yuki celebrates. **All caught up:** Yuki sleeps.
 - **Animation:** a gentle idle "breathing" bob, a pop on mood change, hops when celebrating and when tapped. All motion stops when "Remove animations" is on.
 - **Streak widget** (2×1, resizable to 4×1 and 2×2): Yuki's bust, the flame and day count, and her short line. It refreshes hourly and whenever Yuki goes to the background. The word widget (S14) stays available too.
-- **App icon:** Yuki's face on the Persimmon field.
+- **App icon:** a flat snowflake on the brand maroon field (DESIGN-SYSTEM §5.13).
 
 ### 2.5 Non-goals (explicitly not building)
 

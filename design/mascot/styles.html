@@ -1,0 +1,142 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Yuki style options</title>
+<style>
+  body { font: 14px system-ui, sans-serif; margin: 16px; background: #fff; color: #14161B; }
+  h2 { font-size: 15px; margin: 18px 0 6px; }
+  p { margin: 0 0 8px; color: #4A505C; max-width: 640px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .cell { width: 150px; height: 150px; border-radius: 18px; display: grid; place-items: center; }
+  .cell svg { width: 132px; height: 132px; }
+  .cap { font-size: 12px; color: #4A505C; text-align: center; margin-top: 4px; }
+</style>
+<div id="root"></div>
+<script>
+const SKIN = "#F7CDB0", SKIN2 = "#EBB394", HAIR = "#33241F", INK = "#14161B", CREAM = "#F1E3CF";
+const LINES = { neutral: ["#EEF0F3", "#D63A22", "#FAE7E4"], zh: ["#D63A22", "#D63A22", "#FAE7E4"],
+                es: ["#B42D78", "#B42D78", "#F6E6EF"], ru: ["#2B4FD8", "#2B4FD8", "#E6EAFA"] };
+
+function flake(cx, cy, r, color, w, under) {
+  let d = "";
+  for (let k = 0; k < 3; k++) {
+    const a = (90 + 60 * k) * Math.PI / 180, dx = r * Math.cos(a), dy = r * Math.sin(a);
+    d += `M${cx - dx},${cy - dy}L${cx + dx},${cy + dy}`;
+  }
+  const u = under ? `<path d="${d}" stroke="${under}" stroke-width="${w + 3}" stroke-linecap="round"/>` : "";
+  return u + `<path d="${d}" stroke="${color}" stroke-width="${w}" stroke-linecap="round"/>`;
+}
+
+// 1. Flat editorial (Kiki-like): soft filled shapes, no outlines, circle backdrop.
+function flat(t, light, id) {
+  return `<svg viewBox="0 0 200 200"><defs><clipPath id="c${id}"><circle cx="100" cy="100" r="92"/></clipPath></defs>
+  <circle cx="100" cy="100" r="92" fill="${light}"/>
+  <g clip-path="url(#c${id})">
+    <path d="M60,96C56,52 80,36 100,36C122,36 146,52 140,96C142,118 146,134 150,146C120,156 80,156 50,146C56,132 60,116 60,96Z" fill="${HAIR}"/>
+    <path d="M88,116L112,116L114,146L86,146Z" fill="${SKIN2}"/>
+    <path d="M28,212C30,168 60,150 100,150C140,150 170,168 172,212Z" fill="${CREAM}"/>
+    <path d="M90,152L100,204L110,152Z" fill="#FBF6EE"/>
+    <ellipse cx="69" cy="96" rx="5" ry="7" fill="${SKIN2}"/><ellipse cx="131" cy="96" rx="5" ry="7" fill="${SKIN2}"/>
+    <ellipse cx="100" cy="92" rx="31" ry="35" fill="${SKIN}"/>
+    <path d="M68,90C64,58 84,50 102,50C122,50 138,62 132,92C126,78 116,70 104,68C98,80 84,86 68,90Z" fill="${HAIR}"/>
+    <path d="M82,84Q88,81 94,84M106,84Q112,81 118,84" stroke="${HAIR}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <ellipse cx="88" cy="94" rx="3.2" ry="4" fill="#2B1D1B"/><ellipse cx="112" cy="94" rx="3.2" ry="4" fill="#2B1D1B"/>
+    <circle cx="89.2" cy="92.4" r="1" fill="#fff"/><circle cx="113.2" cy="92.4" r="1" fill="#fff"/>
+    <path d="M100,98Q98,104 101,106" stroke="#D99B7E" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M93,112Q100,117 107,112" stroke="#B5624F" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <ellipse cx="83" cy="104" rx="6" ry="3.5" fill="#F29C8E" opacity=".55"/><ellipse cx="117" cy="104" rx="6" ry="3.5" fill="#F29C8E" opacity=".55"/>
+    <g fill="#D9967A"><circle cx="93" cy="101" r=".8"/><circle cx="96" cy="103" r=".8"/><circle cx="104" cy="103" r=".8"/><circle cx="107" cy="101" r=".8"/></g>
+    <path d="M70,138C84,150 116,150 130,138L134,152C118,166 82,166 66,152Z" fill="${t}"/>
+    <path d="M67,148C84,160 116,160 133,148L134,152C118,166 82,166 66,152Z" fill="#000" opacity=".14"/>
+    <path d="M106,158L122,156L128,192L110,194Z" fill="${t}"/>
+    <path d="M110,194L128,192L127,186L110,188Z" fill="#000" opacity=".14"/>
+    ${flake(125, 64, 6, t, 2.6, "#fff")}
+  </g></svg>`;
+}
+
+// 2. Ink-line avatar (Notion-like): black lines, white fills, one accent colour.
+function ink(t) {
+  const s = `stroke="${INK}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"`;
+  return `<svg viewBox="0 0 200 200">
+    <path d="M60,96C56,52 80,36 100,36C122,36 146,52 140,96C142,118 146,134 150,146C120,156 80,156 50,146C56,132 60,116 60,96Z" fill="${INK}"/>
+    <path d="M89,118L111,118L113,146L87,146Z" fill="#fff" ${s}/>
+    <path d="M30,204C32,168 60,150 100,150C140,150 168,168 170,204" fill="#fff" ${s}/>
+    <path d="M100,160L100,204M74,166L80,204M126,166L120,204" fill="none" ${s}/>
+    <circle cx="94" cy="182" r="1.8" fill="${INK}"/><circle cx="94" cy="196" r="1.8" fill="${INK}"/>
+    <path d="M69,92a5,7 0 1,0 0.1,0Z" fill="#fff" ${s}/><path d="M131,92a5,7 0 1,0 0.1,0Z" fill="#fff" ${s}/>
+    <ellipse cx="100" cy="92" rx="31" ry="35" fill="#fff" ${s}/>
+    <path d="M68,90C64,58 84,50 102,50C122,50 138,62 132,92C126,78 116,70 104,68C98,80 84,86 68,90Z" fill="${INK}"/>
+    <path d="M82,85L94,83M106,83L118,85" fill="none" ${s}/>
+    <circle cx="88" cy="95" r="2.8" fill="${INK}"/><circle cx="112" cy="95" r="2.8" fill="${INK}"/>
+    <path d="M101,97L97,107L102,107" fill="none" ${s} stroke-width="2.4"/>
+    <path d="M92,113Q100,119 108,113" fill="none" ${s}/>
+    <path d="M70,138C84,150 116,150 130,138L134,152C118,166 82,166 66,152Z" fill="${t}" ${s}/>
+    <path d="M106,158L122,156L128,192L110,194Z" fill="${t}" ${s}/>
+    ${flake(125, 64, 6.5, t, 3, "#fff")}
+  </svg>`;
+}
+
+// 3. Flat anime, cel-shaded: big eyes, spiky bangs, thin brown lines, hard shadows.
+function anime(t, light, id) {
+  const L = `stroke="#4A2E2A" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"`;
+  return `<svg viewBox="0 0 200 200"><defs><clipPath id="a${id}"><circle cx="100" cy="100" r="92"/></clipPath></defs>
+  <circle cx="100" cy="100" r="92" fill="${light}"/>
+  <g clip-path="url(#a${id})">
+    <path d="M58,96C52,46 80,32 100,32C124,32 150,46 142,96C146,124 152,142 156,160L132,150L136,170L110,152L90,152L64,170L68,150L44,160C48,142 54,124 58,96Z" fill="#2E2433" ${L}/>
+    <path d="M90,118L110,118L112,146L88,146Z" fill="#EFBFA6" ${L}/>
+    <path d="M28,212C30,168 60,150 100,150C140,150 170,168 172,212Z" fill="${CREAM}" ${L}/>
+    <path d="M60,170C62,186 64,198 64,212M140,170C138,186 136,198 136,212" fill="none" stroke="#D8C3A6" stroke-width="3"/>
+    <path d="M70,86C70,58 130,58 130,86C130,108 116,124 100,128C84,124 70,108 70,86Z" fill="#FBDCC8" ${L}/>
+    <path d="M71,86L80,78L88,94L96,74L104,94L112,76L120,94L127,82L130,90C122,96 78,96 71,86Z" fill="#EFC0A8"/>
+    <path d="M64,98C58,52 86,38 102,38C126,38 144,54 136,100L128,80L122,96L113,74L105,94L97,70L89,94L80,76L72,98Z" fill="#2E2433" ${L}/>
+    <path d="M78,52Q100,40 124,52" stroke="#fff" stroke-opacity=".28" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="87" cy="100" rx="6.4" ry="8.4" fill="#fff" ${L}/><ellipse cx="113" cy="100" rx="6.4" ry="8.4" fill="#fff" ${L}/>
+    <ellipse cx="87.5" cy="101.5" rx="5" ry="6.8" fill="#8A4F3C"/><ellipse cx="112.5" cy="101.5" rx="5" ry="6.8" fill="#8A4F3C"/>
+    <ellipse cx="87.5" cy="103" rx="2.6" ry="3.6" fill="#2B1714"/><ellipse cx="112.5" cy="103" rx="2.6" ry="3.6" fill="#2B1714"/>
+    <circle cx="89.5" cy="98" r="1.8" fill="#fff"/><circle cx="114.5" cy="98" r="1.8" fill="#fff"/>
+    <path d="M79,93Q87,88 95,92M105,92Q113,88 121,93" stroke="#2B1714" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+    <path d="M78,111l3,-3M82,112l3,-3M86,113l3,-3M114,113l3,-3M118,112l3,-3M122,111l3,-3" stroke="#F08A86" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M100,111L99,113" stroke="#C98A74" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M96,118Q100,121 104,118" stroke="#9A4A3E" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M70,138C84,150 116,150 130,138L134,152C118,166 82,166 66,152Z" fill="${t}" ${L}/>
+    <path d="M68,149C84,160 116,160 132,149L134,152C118,166 82,166 66,152Z" fill="#000" opacity=".18"/>
+    <path d="M106,158L122,156L128,192L110,194Z" fill="${t}" ${L}/>
+    ${flake(127, 62, 6.5, t, 2.8, "#fff")}
+  </g></svg>`;
+}
+
+// 4. Bold geometric: circles and rounded rectangles only, no lines.
+function geo(t, light) {
+  return `<svg viewBox="0 0 200 200">
+    <circle cx="100" cy="100" r="92" fill="${light}"/>
+    <path d="M60,92A40,40 0 0 1 140,92L140,134Q140,138 136,138L64,138Q60,138 60,134Z" fill="${HAIR}"/>
+    <rect x="90" y="114" width="20" height="30" fill="${SKIN2}"/>
+    <path d="M42,192L42,180A58,34 0 0 1 158,180L158,192A100,100 0 0 1 42,192Z" fill="${CREAM}"/>
+    <circle cx="100" cy="94" r="30" fill="${SKIN}"/>
+    <path d="M68,84L68,80A32,32 0 0 1 132,80L132,84Z" fill="${HAIR}"/>
+    <circle cx="89" cy="98" r="4" fill="${INK}"/><circle cx="111" cy="98" r="4" fill="${INK}"/>
+    <path d="M93,108A7,7 0 0 0 107,108Z" fill="#B8463E"/>
+    <circle cx="80" cy="107" r="5" fill="#F49A8A" opacity=".65"/><circle cx="120" cy="107" r="5" fill="#F49A8A" opacity=".65"/>
+    <rect x="68" y="136" width="64" height="18" rx="9" fill="${t}"/>
+    <rect x="106" y="146" width="16" height="38" rx="5" fill="${t}"/>
+    <circle cx="124" cy="66" r="8" fill="${t}"/>${flake(124, 66, 5, "#fff", 2.2)}
+  </svg>`;
+}
+
+const styles = [
+  ["1. Flat editorial (like Kiki)", "Soft shapes, no outlines, circle backdrop. Warm and calm.", (t, l, i) => flat(t, l, i), true],
+  ["2. Ink-line avatar (like Notion's people)", "Black lines, white fills, one accent colour: the scarf. Matches the icon's ink style.", (t) => ink(t), false],
+  ["3. Flat anime, cel-shaded", "Big eyes, spiky bangs, thin brown lines, hard shadows. Closest to the original Yuki.", (t, l, i) => anime(t, l, i), true],
+  ["4. Bold geometric", "Only circles and rounded rectangles. Simple and chunky, like the Unbounded type.", (t, l) => geo(t, l), true],
+];
+
+let html = "", n = 0;
+for (const [title, note, draw, ownBackdrop] of styles) {
+  html += `<h2>${title}</h2><p>${note}</p><div class="row">`;
+  for (const [name, [ground, tint, light]] of Object.entries(LINES)) {
+    const backdrop = name === "neutral" ? light : "#FFF8F3";
+    html += `<div><div class="cell" style="background:${ground}">${draw(tint, backdrop, n++)}</div><div class="cap">${name}</div></div>`;
+  }
+  html += `</div>`;
+}
+document.getElementById("root").innerHTML = html;
+</script>

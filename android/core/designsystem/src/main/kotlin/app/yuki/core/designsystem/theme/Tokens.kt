@@ -18,6 +18,11 @@ data class LineColors(val field: Color, val deep: Color, val tintLight: Color, v
   val nightField: Color get() = lerp(this.field, deep, 0.35f)
 }
 
+/** Brand colour for the logo and neutral screens (DESIGN-SYSTEM §2.2), separate from the language lines. */
+object Brand {
+  val Maroon = Color(0xFF7A1F2B)
+}
+
 object Lines {
   val Persimmon = LineColors(Color(0xFFD63A22), Color(0xFF8E2414), Color(0xFFFAE7E4), Color(0xFF3A1A15))
   val Bougainvillea = LineColors(Color(0xFFB42D78), Color(0xFF6E1A4A), Color(0xFFF6E6EF), Color(0xFF351527))

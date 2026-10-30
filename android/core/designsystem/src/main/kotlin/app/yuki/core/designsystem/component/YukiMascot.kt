@@ -45,6 +45,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.yuki.core.designsystem.theme.Brand
 import app.yuki.core.designsystem.theme.Yuki
 import app.yuki.core.model.Mood
 import kotlinx.coroutines.delay
@@ -58,8 +59,8 @@ private fun Mood.label() = when (this) {
 }
 
 /**
- * Yuki, the mascot (PRD S19): a snow spirit drawn as a pictogram (YukiArt.kt), whose scarf,
- * hair-clip flake and sparkles take [tint], the current line colour by default. A gentle idle
+ * Yuki, the mascot (PRD S19): an ink-line avatar (YukiArt.kt) whose scarf, hair-clip flake and
+ * sparkles take [tint], the current line colour by default. A gentle idle
  * "breathing" bob, a pop when her mood changes, two little hops when celebrating, and a hop when
  * tapped. All motion is in graphics layers and stops when the system "Remove animations" setting is on.
  */
@@ -158,11 +159,17 @@ fun SpeechBubble(text: String, modifier: Modifier = Modifier) {
   }
 }
 
-/** Yuki with her speech bubble, as used at the top of Today. */
+/** Yuki with her speech bubble, as used at the top of Today. Neutral screens use the brand maroon scarf. */
 @Composable
-fun MascotGreeting(mood: Mood, message: String, modifier: Modifier = Modifier, onTap: (() -> Unit)? = null) {
+fun MascotGreeting(
+  mood: Mood,
+  message: String,
+  modifier: Modifier = Modifier,
+  tint: Color = Brand.Maroon,
+  onTap: (() -> Unit)? = null,
+) {
   Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-    YukiMascot(mood, size = 112.dp, onTap = onTap)
+    YukiMascot(mood, size = 112.dp, tint = tint, onTap = onTap)
     Spacer(Modifier.width(4.dp))
     SpeechBubble(message, Modifier.weight(1f))
   }

@@ -1,4 +1,4 @@
-"""Yuki logo: a flat 2D snowflake (雪, "yuki") on the Persimmon field.
+"""Yuki logo: a flat 2D snowflake (雪, "yuki") on the brand maroon field.
 
 One geometry, three outputs, so the launcher icon and the design files never drift:
   - android/app/src/main/res/drawable/ic_launcher_foreground.xml  (adaptive-icon vector)
@@ -20,8 +20,8 @@ from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[2]
 
-FIELD = "#D63A22"   # Persimmon (DESIGN-SYSTEM §2.1)
-SHADOW = "#A82A16"  # Persimmon, one step down: the sticker-style drop under the flake
+FIELD = "#7A1F2B"   # Brand maroon (DESIGN-SYSTEM §2.2), chosen 30 Oct 2026 over Persimmon red-orange
+SHADOW = "#561520"  # maroon, one step down: the sticker-style drop under the flake
 SNOW = "#FFF8F3"    # warm white, same as the card paper
 
 C = 54.0            # centre of the 108 viewport

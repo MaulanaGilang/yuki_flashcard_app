@@ -76,6 +76,7 @@ These are cool, slightly blue-tinted greys, like station concrete and enamel sig
 | `neutral.outline` | `#D5D9E0` | `#343944` | Dividers, outlines |
 | `ink.primary` | `#14161B` | `#F1F2F4` | Body text (15.9 : 1 / 17.1 : 1) |
 | `ink.secondary` | `#4A505C` | `#A6ACB8` | Secondary text (8.1 : 1 / 7.6 : 1) |
+| `Brand.Maroon` | `#7A1F2B` | `#E07A86` | The app's own colour, apart from the language lines: app icon, Yuki's scarf on neutral screens, the streak widget's flame, the notification accent. White on maroon is 11 : 1. |
 
 ### 2.3 Pinyin tone colours
 
@@ -299,18 +300,18 @@ Styled like a station departures/arrivals board: Unbounded figures on the line's
 - Empty state: "Open Yuki to start your first line".
 
 ### 5.13 Yuki, the mascot
-- **Style (changed 30 Oct 2026):** a **snow spirit drawn like a transit pictogram**, replacing the earlier AI-rendered chibi girl, whose painterly look clashed with the flat, graphic system. A round snowball body in warm white `#FFF8F3`, every outline the same ink stroke (`neutral.ink`, 3.2 units in a 120-unit square), dot eyes, blush cheeks, stubby capsule arms and a soft ground shadow.
-- **Line colour:** her **scarf, hair-clip snowflake and sparkles take the current line colour** (`YukiMascot(tint = …)`, default `line.field`): red on Mandarin, magenta on Spanish, and so on. The ink outline keeps the scarf readable even on a drenched field of the same colour.
-- **Source:** one script, `pipeline/tools/mascot_snow.py`, holds the geometry and writes `YukiArt.kt` (Compose `ImageVector` parts, tinted at runtime), the widget/notification vectors `yuki_bust_<pose>.xml` (Persimmon scarf), `design/mascot/yuki-<pose>.svg` and `design/mascot/preview.html` (every pose on every line colour). No bitmaps: crisp at any size, a few KB in the APK.
-- **Poses:** wave, celebrate (arms up, happy eyes, sparkles), worried (raised brows, sweat drop), sleepy (closed eyes, "z z").
+- **Style (chosen 30 Oct 2026):** an **ink-line avatar**: black lines (`neutral.ink`, 3 units in a 200-unit square), white fills, solid black shoulder-length hair with bangs, dot eyes, a little blush, and a white cardigan with buttons. It replaced the AI-rendered chibi girl, whose painterly look clashed with the flat, graphic system. The same outline weight as the app icon makes her part of the design system rather than a pasted-in illustration.
+- **One accent colour:** her **scarf, snowflake hair clip and sparkles** are the only colour (`YukiMascot(tint = …)`). On study, summary and checkpoint screens they take the current **line colour** (default `line.field`); on neutral screens (Today, onboarding), the widget and notifications they're **brand maroon** (`Brand.Maroon`, `MascotGreeting`'s default). The ink outline keeps the scarf readable even on a drenched field of the same colour.
+- **Source:** one script, `pipeline/tools/mascot_yuki.py`, holds the geometry and writes `YukiArt.kt` (Compose `ImageVector` parts, tinted at runtime), the widget/notification vectors `yuki_bust_<pose>.xml` (maroon scarf), `design/mascot/yuki-<pose>.svg` and `design/mascot/preview.html` (every pose on every line colour). No bitmaps: crisp at any size, a few KB in the APK. `design/mascot/styles.html` keeps the four styles that were compared.
+- **Poses:** wave (one hand up), celebrate (both arms up, happy eyes, open smile, sparkles), worried (raised brows, wobbly mouth, sweat drop), sleepy (closed eyes, "z z").
 - **On Today:** 112 dp, with the speech bubble on a `neutral.surface` card and a tail pointing at her.
 - **Motion:**
   - Idle: scaleY +1.8 % over 1.6 s, reversing.
   - Mood change: spring pop from 85 % scale.
   - Celebrate: two hops of 12 % of her height.
   - Tap: one small hop.
-- **Streak widget:** warm off-white ground (`#FFF4EE` / night `#231915`), flame and count in Persimmon once today is done (grey before), message in `ink.secondary`.
-- **App icon:** a flat snowflake (雪, *yuki*) in warm white `#FFF8F3` on Persimmon, with rounded strokes, a one-step-darker sticker drop (`#A82A16`, 2 units down) and a Persimmon dot at the centre. It sits inside the 66-unit safe circle, so OEM masks never clip it, and it doubles as the Android 13 monochrome icon. A single script, `pipeline/tools/logo_snowflake.py`, writes the launcher vector, `design/logo/yuki-logo.svg` and the 512 px PNG. Yuki herself appears in the app and widgets, not in the icon.
+- **Streak widget:** warm off-white ground (`#FFF4EE` / night `#231915`), flame and count in brand maroon once today is done (grey before), message in `ink.secondary`.
+- **App icon:** a flat snowflake (雪, *yuki*) in warm white `#FFF8F3` on **brand maroon `#7A1F2B`** (chosen 30 Oct 2026 over Persimmon, so the brand isn't red-orange and stays separate from the Mandarin line), with rounded strokes, a one-step-darker sticker drop (`#561520`, 2 units down) and a maroon dot at the centre. It sits inside the 66-unit safe circle, so OEM masks never clip it, and it doubles as the Android 13 monochrome icon. A single script, `pipeline/tools/logo_snowflake.py`, writes the launcher vector, `design/logo/yuki-logo.svg` and the 512 px PNG. Yuki herself appears in the app and widgets, not in the icon.
 
 ## 6. Screens (blueprint)
 
