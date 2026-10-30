@@ -22,12 +22,6 @@
   <path d="M96,118.5a4,2 0 1,0 8,0a4,2 0 1,0 -8,0z" fill="#E8746A"/>
   <path d="M70,138C84,150 116,150 130,138L134,152C118,166 82,166 66,152z" fill="#7A1F2B" stroke="#14161B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M106,158L122,156L128,192L110,194z" fill="#7A1F2B" stroke="#14161B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M62,174L42,160L38,140" fill="none" stroke="#14161B" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M62,174L42,160L38,140" fill="none" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M26,126a10,12 0 1,0 20,0a10,12 0 1,0 -20,0z" fill="#FFFFFF" stroke="#14161B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M138,174L158,160L162,140" fill="none" stroke="#14161B" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M138,174L158,160L162,140" fill="none" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M154,126a10,12 0 1,0 20,0a10,12 0 1,0 -20,0z" fill="#FFFFFF" stroke="#14161B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M125.00,57.50L125.00,70.50M130.63,60.75L119.37,67.25M130.63,67.25L119.37,60.75" fill="none" stroke="#FFFFFF" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M125.00,57.50L125.00,70.50M130.63,60.75L119.37,67.25M130.63,67.25L119.37,60.75" fill="none" stroke="#7A1F2B" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

@@ -55,12 +55,6 @@ def line(d: str, w: float = LINE) -> Part:
   return Part(d, stroke=INK, width=w)
 
 
-def sleeve(points: list[tuple[float, float]], hx: float, hy: float) -> list[Part]:
-  """An arm from the shoulder through the elbow: an outlined capsule (wide ink under narrower
-  paper) ending in an outlined hand."""
-  d = "M" + "L".join(f"{x:g},{y:g}" for x, y in points)
-  return [Part(d, stroke=INK, width=22), Part(d, stroke=PAPER, width=22 - 2 * LINE), outlined(ellipse(hx, hy, 10, 12))]
-
 
 def sparkle(x: float, y: float, s: float) -> Part:
   d = f"M{x:g},{y - s:g}Q{x:g},{y:g} {x + s:g},{y:g}Q{x:g},{y:g} {x:g},{y + s:g}Q{x:g},{y:g} {x - s:g},{y:g}Q{x:g},{y:g} {x:g},{y - s:g}z"
@@ -85,7 +79,7 @@ SCARF = "M70,138C84,150 116,150 130,138L134,152C118,166 82,166 66,152z"
 TAIL = "M106,158L122,156L128,192L110,194z"
 
 
-def figure(face: list[Part], arms: list[Part] = (), back: list[Part] = (), front: list[Part] = ()) -> list[Part]:
+def figure(face: list[Part], back: list[Part] = (), front: list[Part] = ()) -> list[Part]:
   return [
     *back,
     Part(HAIR_BACK, fill=INK),
@@ -101,7 +95,6 @@ def figure(face: list[Part], arms: list[Part] = (), back: list[Part] = (), front
     *face,
     outlined(SCARF, TINT),
     outlined(TAIL, TINT),
-    *arms,
     *flake(125, 64, 6.5),
     *front,
   ]
@@ -115,10 +108,6 @@ def poses() -> dict[str, list[Part]]:
   return {
     "wave": figure(
       DOT_EYES + CALM_BROWS + [line("M92,113Q100,119 108,113")],
-      arms=sleeve([(140, 174), (160, 162), (162, 142)], 163, 126) + [
-        line("M157,116L155,110M163,114L163,107M169,116L171,110", 2.4),
-        line("M182,112Q187,121 182,130M189,108Q196,121 189,134", 2.4),
-      ],
     ),
     "celebrate": figure(
       CALM_BROWS + [
@@ -126,7 +115,6 @@ def poses() -> dict[str, list[Part]]:
         Part("M90,110L110,110Q109,122 100,122Q91,122 90,110z", fill=INK, stroke=INK, width=2),
         Part(ellipse(100, 118.5, 4, 2), fill=TONGUE),
       ],
-      arms=sleeve([(62, 174), (42, 160), (38, 140)], 36, 126) + sleeve([(138, 174), (158, 160), (162, 140)], 164, 126),
       back=[sparkle(34, 50, 8), sparkle(168, 44, 7), sparkle(100, 14, 6)],
     ),
     "worried": figure(
