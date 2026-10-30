@@ -24,7 +24,7 @@ Checked 2026-10-29. All sources are free. Licences are noted because every pack 
 | fr | `fr-FR-DeniseNeural` (F) | `fr-FR-HenriNeural` (M) |
 | ar (MSA) | `ar-SA-ZariyahNeural` (F) | `ar-SA-HamedNeural` (M) |
 
-Pick the final voice with a short listening check: 20 words and 5 sentences per voice.
+**Decided 2026-10-30:** each language uses **both** voices: one female, one male. A word keeps one voice, picked by a stable hash of its id, and its example sentence uses the other one, so every card has both speakers. Human recordings still come first. English is **American**: `en-US-AvaNeural` (F) and `en-US-AndrewNeural` (M), with US IPA preferred. The Mandarin audio already made stays as it is; a male voice for zh sentences (`zh-CN-YunxiNeural`) is an optional later update.
 
 ## What the app reads from each word (pack contract)
 
