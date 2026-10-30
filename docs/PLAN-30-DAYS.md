@@ -1,10 +1,10 @@
 # Yuki: the 30-day finish
 
 **Window:** Day 1 = Thu 29 Oct 2026. Day 30 = Fri 27 Nov 2026, when the Claude subscription ends.
-**Rule:** everything is built by **Day 21 (Wed 18 Nov)**. Days 22–24 are for testing and Days 25–30 for fixing. Nothing ships half-done: a language either has a complete pack or waits for v1.1.
-**You** (the owner) test nothing until Day 22. Until then, Claude checks its own work with unit tests, emulator runs and the pipeline's evaluate reports.
+**Rule (fast plan, agreed 30 Oct):** everything is built by **Day 6 (Tue 3 Nov)**. Testing starts **Day 7 (Wed 4 Nov)**, and Days 7–30 are for testing and fixing. A slip of a day or two (usage limits, a bad word list) is fine. **Day 21 (Wed 18 Nov) stays the hard fallback** for the build. Nothing ships half-done: a language either has a complete pack or waits for v1.1.
+**You** (the owner) test nothing until the build is done. Until then, Claude checks its own work with unit tests, emulator runs and the pipeline's evaluate reports.
 
-## What "done" means on Day 21
+## What "done" means at the end of the build
 
 | Language | Levels | Approx. words | Word list (free) | Pack |
 |---|---|---|---|---|
@@ -33,39 +33,32 @@ Pictures are the slowest part: Cloudflare's free tier makes about 170 images a d
 
 ## Schedule
 
-### Week 1: Days 1–7 (29 Oct – 4 Nov)
-- **Mandarin pack finished:** audio done, free-image pass, evaluate, package `.kpack`. *(running now)*
-- **Shared multi-language engine:** generalise the pipeline from Mandarin-only to recipes per language, with the kaikki.org ingest, Tatoeba sentences, a TTS voice per language, the shared concept-image library and CEFR banding.
-- **Spanish and English packs** built end to end on the new engine. They're the easiest, so they prove it works.
-- `pipeline/tools/daily.ps1` plus a "Running it yourself (no Claude)" README.
+Each language's audio takes about 5–8 hours of laptop time (12,000–17,000 clips), so builds run overnight and one at a time; parallel runs risk the TTS service throttling us. Recipes are written and checked during the day.
 
-### Week 2: Days 8–14 (5 – 11 Nov)
-- **Russian:** word list (ТРКИ plus Anki/KELLY for B1/C1), stress marks, transliteration check against the app's reading guide.
-- **German:** articles and gender on every noun, plural forms.
-- **French:** gender, elision (l', d'), liaison notes where Wiktionary has them.
-- App checks with real packs: big-pack performance (library search under 100 ms, study start, stats over a year of fake history), gender chips and the reading guides on real data.
+| Day | Date | Work | Laptop builds |
+|---|---|---|---|
+| 1 | Thu 29 Oct | Shared multi-language engine, Spanish and English recipes, `daily.ps1` | Mandarin audio |
+| 2 | Fri 30 Oct | **Mandarin pack done** (106 MB, 5,456 words). German recipe finished: articles and gender on every noun, plurals | Spanish, then English (overnight) |
+| 3 | Sat 31 Oct | **Russian** recipe: KELLY + ТРКИ-2 levels, stress marks, aspect pairs, transliteration check. **French** recipe: gender, elision (l', d') | German |
+| 4 | Sun 1 Nov | Check the German pack's report. App checks with real packs: library search under 100 ms, study start, gender chips and reading guides on real data | Russian, then French |
+| 5 | Mon 2 Nov | **Arabic** recipe: fully vowelled headwords and sentences, Wiktionary example sentences, transliteration check, right-to-left layout on every screen | Arabic |
+| 6 | Tue 3 Nov | **All seven packs** re-packaged with every picture made so far, then evaluated. **Release APK v1.0** signed. Hand-over docs | Final repackage |
 
-### Week 3: Days 15–21 (12 – 18 Nov)
-- **Arabic:** fully vowelled headwords and sentences, the transliteration check, right-to-left layout on every screen.
-- **All seven packs** re-packaged with every picture made so far, then evaluated (meaning coverage, audio, broken files, size).
-- **Release APK v1.0** signed, with packs installed by `.kpack` (they're too large to bundle in the APK).
-- Hand-over docs: how to rebuild a pack, how to add images, how to install updates, how to restore a backup.
-
-### Days 22–24 (19 – 21 Nov): you test
+### From Day 7 (Wed 4 Nov): you test, then fix
 - Install the v1.0 APK and all seven packs on the Reno4.
 - Use the evaluate spot-check sheets (`pipeline/work/<pack>/report.html`) to check content quickly.
 - Write every problem in one list (screen, word, what's wrong).
-
-### Days 25–30 (22 – 27 Nov): fix
-- Fix the list in order: crashes, then wrong content, then confusing UI, then polish.
-- Final build, final push, and switch the daily image job to Windows Task Scheduler.
-- **Day 30:** everything is in GitHub, and the keystore is backed up off the laptop.
+- Fix the list in order: crashes, then wrong content, then confusing UI, then polish. Test, fix, repeat until Day 30.
+- Pictures keep improving: the daily FLUX job runs every morning, and updated packs install from Settings.
+- Before Day 30: final build, final push, and switch the daily image job to Windows Task Scheduler.
+- **Day 30 (Fri 27 Nov):** everything is in GitHub, and the keystore is backed up off the laptop.
 
 ## Risks and what happens then
 
 | Risk | Plan |
 |---|---|
-| Claude usage limits slow the build (already hit once) | Languages run as parallel sessions in Weeks 2–3; if limits bite, Arabic moves to a "v1.1 recipe ready" state with docs. |
+| Claude usage limits slow the build (already hit twice) | Builds keep running while Claude is at its limit (keep the app open, laptop awake); only recipe writing pauses. A slip moves the dates by a day or two, never past Day 21. If limits bite hard, Arabic moves to a "v1.1 recipe ready" state with docs. |
+| Wikimedia throttles downloads (HTTP 429) | `YUKI_CONTACT` in `pipeline/.env` identifies the downloader; skipped human recordings fall back to TTS and are retried on later runs. |
 | A free word list is missing or unusable | Anki shared deck for that level (word list only), then frequency banding. |
 | Pack size too large for the phone | Opus audio at a lower bitrate; sentence audio for the first two sentences only. |
 | Picture quality looks uneven | Typographic cards for anything weak; FLUX keeps replacing pictures after Day 30. |
