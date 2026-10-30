@@ -127,7 +127,14 @@ class PackReader(val packId: String, val lang: Lang, dbPath: String) : Closeable
       s.bindText(1, wordId)
       buildList {
         while (s.step()) {
-          add(Sentence(s.getText(0), s.getText(1), s.textOrNull(2), s.getText(3), s.textOrNull(4), s.getLong(5) == 1L))
+          val reading = s.textOrNull(2)
+          // ru/ar: `reading` is the sentence with stress or vowel marks. Show that as the text and let
+          // the app transliterate it, rather than printing it as the Latin line.
+          if (lang.needsTransliteration) {
+            add(Sentence(s.getText(0), reading ?: s.getText(1), null, s.getText(3), s.textOrNull(4), s.getLong(5) == 1L))
+          } else {
+            add(Sentence(s.getText(0), s.getText(1), reading, s.getText(3), s.textOrNull(4), s.getLong(5) == 1L))
+          }
         }
       }
     }
@@ -180,7 +187,9 @@ class PackReader(val packId: String, val lang: Lang, dbPath: String) : Closeable
       id = s.getText(0),
       lang = lang,
       headword = s.getText(1),
-      reading = s.getText(2),
+      // ru/ar packs put the stressed/vowelled form in `reading` (the headword already shows it) and
+      // IPA in extra_json; the app's small reading line shows IPA, and the Latin line is made locally.
+      reading = if (lang.needsTransliteration) extra?.get("ipa")?.jsonPrimitive?.content.orEmpty() else s.getText(2),
       level = s.getLong(3).toInt(),
       levelLabel = s.getText(4),
       freqRank = s.getLong(5).toInt(),
