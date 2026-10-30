@@ -66,6 +66,17 @@ Order of preference: official free list > an Anki shared deck for that exam leve
 - **ru and ar: KELLY lists (downloaded and checked).** KELLY (Kilgarriff et al. 2014, *Language Resources and Evaluation*, doi:10.1007/s10579-013-9251-2) is hosted at `https://ssharoff.github.io/kelly/` and prefetched to `work/prefetch/kelly/`. The licence is the project's **CC BY-NC-SA 2.0** (no separate file ships with the ru/ar lists; cite the paper). Files are `.xls`, so add `xlrd==2.0.1` to the pipeline.
   - `ru_m3.xls`: 8,958 rows, columns `Lemma, CEFR, POS, Frq abs, Frq ipm`. Normalise CEFR to upper case: A1 938, A2 1,060, B1 1,562, B2 3,423, C1 1,393 (**8,376** at A1–C1). ТРКИ A1/A2/B2 (PRD §3.1 links) take priority, KELLY fills B1 and C1, and words in both keep the ТРКИ level.
   - `ar_m3.xls`: 8,893 rows. Headword is column 5 (`الكلمة الأصلية Original word`, unvowelled), level column 6 (`CEFR level`), POS column 3 (Arabic labels: اسم noun, صفة adj, فعل verb…), frequency column 7. Corrections are in column 4: use them when filled. A1 775, A2 1,246, B1 1,553, B2 1,703, C1 1,440 (**6,717** at A1–C1). It's the main Arabic list. Vowel the headwords from Wiktionary (kaikki `Arabic` entries, matched on the unvowelled form plus POS); words without a vowelled Wiktionary form are dropped and logged.
+- **Clean tables ready (2026-10-30).** `tools/extract_wordlists.py` (needs `pdfplumber==0.11.4` and `xlrd==2.0.1`) turns the PDF and XLS lists into TSVs in `work/prefetch/wordlists/`:
+
+  | File | Rows | Columns |
+  |---|---|---|
+  | `de_goethe.tsv` | 3,682 (A1 741 · A2 819 · B1 2,122), each word at its lowest Goethe level | `headword` (with article), `article`, `plural`, `forms`, `level` |
+  | `ru_trki_b2.tsv` | 5,474 | `headword` with stress (the PDF stores ́ as "k"; already converted to U+0301), `plain`, `aspect` (impf./pf.), `pair` (sometimes), `level`. The list is cumulative, so B2 means "at most B2". |
+  | `ru_kelly.tsv` | 8,958 | `headword`, `pos`, `level`, `ipm` |
+  | `ar_kelly.tsv` | 8,893 | `headword` (unvowelled), `pos`, `level`, `ipm` |
+
+  The German table still has some headword fragments from the PDF layout. Keep only headwords Wiktionary knows as German (the engine's `require_gloss`).
+  **Russian:** the ТРКИ A1 (.docx link now returns an HTML page) and A2 (server unreachable) files couldn't be fetched. So the levels are KELLY's, capped at B2 for every word in the ТРКИ-2 list, and KELLY alone for C1. Stress marks and aspect come from the ТРКИ table where present, otherwise from Wiktionary.
 - **Arabic sentences are thin on Tatoeba** (the `ara` export is 1.2 MB, against 9–22 MB for spa/rus/deu/fra). Use Wiktionary usage examples (kaikki `senses[].examples` with `english`) as the second sentence source, and hand-written CC0 gap fillers (like `zh_extra_sentences.tsv`) for the rest.
 - All of the above was prefetched on 2026-10-29 to `pipeline/work/prefetch/` (kaikki dumps for Spanish, English, Russian, German, French and Arabic, plus every word list, frequency list and Tatoeba export).
 - If KELLY can't be used, take an Anki shared deck for ТРКИ-1 / ТРКИ-3 (Russian) or an MSA frequency deck (Arabic), word list only.
