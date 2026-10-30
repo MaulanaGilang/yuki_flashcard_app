@@ -2,8 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Yuki is fully offline (ADR-7): strip INTERNET even if a library declares it. -->
-    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
+    <!-- Study is fully offline (ADR-7). INTERNET is only for the optional online backup
+         (app/yuki/cloud/CloudBackup.kt), used after you sign in under Settings. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Daily reminder (PRD S13): asked for only when reminders are switched on. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />

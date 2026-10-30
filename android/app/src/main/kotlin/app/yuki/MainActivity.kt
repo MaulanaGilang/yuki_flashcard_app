@@ -35,5 +35,7 @@ class MainActivity : ComponentActivity() {
     // Keep the widget in step with today's progress whenever the app goes to the background.
     WordWidget.refreshAll(this)
     app.yuki.widget.StreakWidget.refreshAll(this)
+    // Online backup: upload what was studied, now or as soon as the phone is online.
+    if (!isChangingConfigurations) (application as YukiApp).graph.cloud.scheduleUpload()
   }
 }

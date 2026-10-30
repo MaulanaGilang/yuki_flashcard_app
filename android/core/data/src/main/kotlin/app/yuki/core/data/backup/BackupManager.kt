@@ -85,6 +85,12 @@ class BackupManager(
     manifest
   }
 
+  /** Changes whenever a review is logged; used to skip uploading an unchanged backup. */
+  suspend fun changeMarker(): String = withContext(Dispatchers.IO) {
+    val logs = holder.db.reviewLogDao()
+    "${logs.count()}|${logs.lastReviewAt()}"
+  }
+
   /** Unzips and verifies a backup without touching current progress. */
   suspend fun inspect(source: Uri): BackupPreview = withContext(Dispatchers.IO) {
     val dir = File(context.cacheDir, "restore").apply { deleteRecursively(); mkdirs() }

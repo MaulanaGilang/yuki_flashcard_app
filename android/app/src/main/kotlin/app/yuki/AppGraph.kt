@@ -28,6 +28,7 @@ class AppGraph(context: Context) {
   val progress = ProgressRepository(database, packs, study, clock, studyDay, settings)
   val stats = StatsRepository(database, clock, studyDay)
   val backup = BackupManager(context, database, BuildConfig.VERSION_NAME)
+  val cloud = app.yuki.cloud.CloudBackup(context, backup)
 
   /** App-lifetime scope for fire-and-forget work such as widget refreshes. */
   val appScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)

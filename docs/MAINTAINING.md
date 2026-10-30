@@ -88,6 +88,11 @@ Run it now: `Start-ScheduledTask yuki-daily`. Check it: `Get-Content pipeline\wo
 - **Automatic:** Settings › Backup & restore › "Back up every week" saves to the folder you picked and keeps the last 4.
 - **Manual:** Settings › Save backup.
 - **Restore on a new phone:** install the APK and the packs, then Settings › Restore… and pick a `.yuki-backup`. It shows what's inside before replacing anything.
+- **Online:** Settings › Online backup. Sign in once with your email and password; after that Yuki uploads when you leave the app and you're online (optionally Wi-Fi only). On a new phone: install, finish onboarding, Settings › Online backup › sign in › **Restore from online**, then install the packs.
+  - It lives in the free Supabase project **`yuki`** (supabase.com, your account, region Singapore), private bucket `backups`. The newest upload and the one before are kept.
+  - **Free-tier pause:** if nothing touches the project for about a week, Supabase pauses it. Your files stay. Open supabase.com › project `yuki` › **Restore project** (free), and uploads work again. The phone keeps retrying meanwhile.
+  - **Lock it down after you've made your account:** Supabase › `yuki` › Authentication › Sign In / Providers › turn off **Allow new users to sign up**, so nobody else can create accounts with the key inside the app. Each account can only ever see its own folder.
+  - Forgot the password: Supabase › `yuki` › Authentication › Users › your email › send a password recovery, or sign up again with a new email and upload from the phone.
 
 ## Phone quirks (OPPO Reno4 / ColorOS)
 

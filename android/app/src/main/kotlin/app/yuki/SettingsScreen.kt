@@ -117,6 +117,8 @@ fun SettingsScreen(graph: AppGraph) {
       )
     }
 
+    OnlineBackup(graph, onPreview = { preview = it })
+
     Column(Modifier.fillMaxWidth().background(c.neutral.surface, RoundedCornerShape(20.dp)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
       SectionLabel("Backup & restore")
       Text(
@@ -162,7 +164,10 @@ fun SettingsScreen(graph: AppGraph) {
           val chosen = p
           preview = null
           graph.appScope.launch {
-            message = runCatching { graph.backup.restore(chosen) }.fold({ "Progress restored." }, { "Restore failed: ${it.message}" })
+            message = runCatching { graph.backup.restore(chosen) }.fold(
+              { "Progress restored. Install your language packs again if this is a new phone." },
+              { "Restore failed: ${it.message}" },
+            )
           }
         }) { Text("Replace progress") }
       },
@@ -264,6 +269,86 @@ private fun ReminderSettings(graph: AppGraph) {
         }
       }
     }
+  }
+}
+
+/**
+ * Online backup (ADR-7 amended): sign in with email and password once; progress then uploads
+ * whenever you leave the app and are online. Restore shows the same confirm dialog as a file.
+ */
+@Composable
+private fun OnlineBackup(graph: AppGraph, onPreview: (BackupPreview) -> Unit) {
+  val c = Yuki.colors
+  val cloud = graph.cloud
+  val state by cloud.state.collectAsStateWithLifecycle()
+  var email by remember { mutableStateOf("") }
+  var password by remember { mutableStateOf("") }
+  var busy by remember { mutableStateOf(false) }
+  var note by remember { mutableStateOf<String?>(null) }
+  fun run(block: suspend () -> String) {
+    busy = true
+    note = null
+    graph.appScope.launch {
+      note = runCatching { block() }.getOrElse { it.message ?: "Something went wrong." }
+      busy = false
+    }
+  }
+  Column(Modifier.fillMaxWidth().background(c.neutral.surface, RoundedCornerShape(20.dp)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    SectionLabel("Online backup")
+    val signedInEmail = state.email
+    if (signedInEmail == null) {
+      Text(
+        "Sign in to keep a copy of your progress online. Studying stays offline; Yuki uploads when you leave the app and you're online.",
+        style = MaterialTheme.typography.bodyMedium, color = c.neutral.ink2,
+      )
+      androidx.compose.material3.OutlinedTextField(
+        value = email, onValueChange = { email = it }, label = { Text("Email") }, singleLine = true,
+        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Email),
+        modifier = Modifier.fillMaxWidth(),
+      )
+      androidx.compose.material3.OutlinedTextField(
+        value = password, onValueChange = { password = it }, label = { Text("Password (6+ characters)") }, singleLine = true,
+        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password),
+        modifier = Modifier.fillMaxWidth(),
+      )
+      val ready = !busy && email.contains('@') && password.length >= 6
+      Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Button(enabled = ready, onClick = {
+          run { cloud.signIn(email, password); password = ""; cloud.scheduleUpload(force = true); "Signed in. Your progress will upload when you're online." }
+        }, shape = CircleShape) { Text("Sign in") }
+        OutlinedButton(enabled = ready, onClick = {
+          run {
+            when (cloud.signUp(email, password)) {
+              app.yuki.cloud.CloudBackup.SignUpResult.SignedIn -> { password = ""; cloud.scheduleUpload(force = true); "Account created and signed in." }
+              app.yuki.cloud.CloudBackup.SignUpResult.ConfirmEmail ->
+                "Account created. Open the email from Supabase and tap the link (the page it opens may not load; that's fine), then tap Sign in here."
+            }
+          }
+        }, shape = CircleShape) { Text("Create account") }
+      }
+    } else {
+      Text("Signed in as $signedInEmail", style = MaterialTheme.typography.bodyLarge, color = c.neutral.ink)
+      Text(
+        state.lastUpload?.let {
+          val t = it.atZone(java.time.ZoneId.systemDefault())
+          "Last uploaded: ${t.toLocalDate()} ${t.toLocalTime().withNano(0).withSecond(0)}"
+        } ?: "Not uploaded yet",
+        style = MaterialTheme.typography.bodySmall, color = c.neutral.ink2,
+      )
+      ToggleRow("Upload only on Wi-Fi", "Otherwise mobile data is used too (a few MB each time)", state.wifiOnly) { cloud.setWifiOnly(it) }
+      androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Button(enabled = !busy, onClick = {
+          run { val m = cloud.upload(force = true); "Uploaded: ${m?.cards ?: 0} cards, ${m?.reviews ?: 0} reviews." }
+        }, shape = CircleShape) { Text("Back up now") }
+        OutlinedButton(enabled = !busy, onClick = {
+          run { onPreview(cloud.download()); "Online backup found. Confirm to restore it." }
+        }, shape = CircleShape) { Text("Restore from online") }
+        TextButton(enabled = !busy, onClick = { cloud.signOut(); note = "Signed out. The online copy stays." }) { Text("Sign out") }
+      }
+    }
+    if (busy) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth())
+    note?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = c.neutral.ink) }
   }
 }
 
