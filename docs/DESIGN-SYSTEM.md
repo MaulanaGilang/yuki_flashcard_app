@@ -52,7 +52,9 @@ All values were checked with the WCAG formula. White text on every field passes 
 | DE German, **Ochre line** | `line.de` | `#8C5E00` | 5.65 | `#553900` | `#F1ECE0` |
 | FR French, **Iris line** | `line.fr` | `#6A3FD1` | 6.47 | `#3E2380` | `#EDE8F9` |
 | AR Arabic, **Olive line** | `line.ar` | `#4E7614` | 5.35 | `#2F470B` | `#EAEFE3` |
-| あ Japanese, **Ai (藍, indigo) line** | `line.ja` | `#1F5F8B` | 6.84 | `#123A57` | `#E3ECF3` |
+| あ Japanese, **Matcha (抹茶) line** | `line.ja` | `#2E7D32` | 5.13 | `#1B4D1F` | `#E5F0E6` |
+
+**How the eight lines sit on the wheel.** Like a metro map, the lines aren't spaced evenly; they follow three rules: white text passes AA on each, they carry equal visual weight, and neighbours differ in hue or lightness at a glance. An even 45° wheel isn't possible under rule 1, since yellows and bright greens dark enough for white text turn brown. Hues run Persimmon 8° · Ochre 40° · Olive 84° · **Matcha 123°** · Jade 168° · Cobalt 228° · Iris 258° · Bougainvillea 327°; gaps run 30–69°, the tightest being Cobalt–Iris (30°, which also differ in lightness). Matcha was placed in what was an 84° empty green gap; it was first indigo `#1F5F8B` at 204°, only 23° from Cobalt.
 
 **Stations deepen as you go.** Each level's field is the line colour mixed toward *Deep*, so higher levels feel heavier and more serious. Contrast rises with depth.
 

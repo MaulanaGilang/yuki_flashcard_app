@@ -29,7 +29,7 @@ TINT = "TINT"       # replaced by the line colour (maroon in the static files)
 MAROON = "#7A1F2B"  # Brand.Maroon: logo and neutral screens
 LINES = {           # Tokens.kt Lines.*.field, for the preview sheet
     "zh": "#D63A22", "es": "#B42D78", "ru": "#2B4FD8", "en": "#0B7A64",
-    "de": "#8C5E00", "fr": "#6A3FD1", "ar": "#4E7614", "ja": "#1F5F8B",
+    "de": "#8C5E00", "fr": "#6A3FD1", "ar": "#4E7614", "ja": "#2E7D32",
 }
 LINE = 3.0          # every outline
 VIEW = 200

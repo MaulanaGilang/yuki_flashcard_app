@@ -31,8 +31,8 @@ object Lines {
   val Ochre = LineColors(Color(0xFF8C5E00), Color(0xFF553900), Color(0xFFF1ECE0), Color(0xFF29200F))
   val Iris = LineColors(Color(0xFF6A3FD1), Color(0xFF3E2380), Color(0xFFEDE8F9), Color(0xFF211A3D))
   val Olive = LineColors(Color(0xFF4E7614), Color(0xFF2F470B), Color(0xFFEAEFE3), Color(0xFF1B2613))
-  /** Ai, Japanese indigo (藍): deeper and greener than Cobalt. White on it 6.8 : 1. */
-  val Ai = LineColors(Color(0xFF1F5F8B), Color(0xFF123A57), Color(0xFFE3ECF3), Color(0xFF13222E))
+  /** Matcha (抹茶), Japanese: fills the gap between Olive and Jade on the wheel. White on it 5.1 : 1. */
+  val Matcha = LineColors(Color(0xFF2E7D32), Color(0xFF1B4D1F), Color(0xFFE5F0E6), Color(0xFF142616))
 
   fun of(lang: Lang) = when (lang) {
     Lang.ZH -> Persimmon
@@ -42,7 +42,7 @@ object Lines {
     Lang.DE -> Ochre
     Lang.FR -> Iris
     Lang.AR -> Olive
-    Lang.JA -> Ai
+    Lang.JA -> Matcha
   }
 }
 

@@ -21,7 +21,7 @@ enum class Lang(
   DE("de", "Ochre", "DE", "German", Script.LATIN),
   FR("fr", "Iris", "FR", "French", Script.LATIN),
   AR("ar", "Olive", "ع", "Arabic", Script.ARABIC, rtl = true),
-  JA("ja", "Ai", "あ", "Japanese", Script.JAPANESE);
+  JA("ja", "Matcha", "あ", "Japanese", Script.JAPANESE);
 
   /** Needs a transliteration line to be readable by a beginner. */
   val needsTransliteration: Boolean get() = script == Script.CYRILLIC || script == Script.ARABIC
