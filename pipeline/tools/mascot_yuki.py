@@ -467,14 +467,14 @@ internal fun yukiVector(mood: Mood, tint: Color, outfit: String = "neutral"): Im
 
 
 def preview(all_outfits: dict[str, dict[str, list[Part]]]) -> str:
-  """Each outfit in every pose on its own line colour, plus the same outfit on the neutral ground."""
+  """Each outfit in every pose where the app shows it: languages on their line colour (study,
+  summary and checkpoint are all drenched), neutral on the neutral ground."""
   rows = []
   for name, by_pose in all_outfits.items():
     tint = MAROON if name == "neutral" else LINES[name]
-    grounds = ["#EEF0F3"] if name == "neutral" else [tint, "#EEF0F3"]
-    for ground in grounds:
-      cells = "".join(f'<div class="cell" style="background:{ground}">{svg(p, tint)}</div>' for p in by_pose.values())
-      rows.append(f'<div class="row"><span>{name}</span>{cells}</div>')
+    ground = "#EEF0F3" if name == "neutral" else tint
+    cells = "".join(f'<div class="cell" style="background:{ground}">{svg(p, tint)}</div>' for p in by_pose.values())
+    rows.append(f'<div class="row"><span>{name}</span>{cells}</div>')
   head = "".join(f'<div class="cell" style="height:auto">{p}</div>' for p in next(iter(all_outfits.values())))
   return f"""<!doctype html><meta charset="utf-8"><title>Yuki mascot</title>
 <style>body{{font:14px system-ui;margin:16px;background:#fff}}.row{{display:flex;gap:8px;align-items:center;margin:6px 0}}

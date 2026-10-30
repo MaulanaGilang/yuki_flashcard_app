@@ -110,15 +110,16 @@ class CheckpointViewModel(
 fun CheckpointScreen(viewModel: CheckpointViewModel, levelLabel: String, onClose: () -> Unit) {
   val state by viewModel.state.collectAsStateWithLifecycle()
   val c = Yuki.colors
+  // Drenched in the line colour like a study session: a level test is a big moment (DESIGN-SYSTEM §1).
   Column(
-    Modifier.fillMaxSize().background(c.neutral.ground).windowInsetsPadding(WindowInsets.safeDrawing).padding(horizontal = 20.dp, vertical = 8.dp),
+    Modifier.fillMaxSize().background(c.field).windowInsetsPadding(WindowInsets.safeDrawing).padding(horizontal = 20.dp, vertical = 8.dp),
   ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
       IconButton(onClick = onClose, modifier = Modifier.semantics { contentDescription = "Close checkpoint" }) {
-        Text("✕", color = c.neutral.ink, fontSize = 16.sp)
+        Text("✕", color = Color.White, fontSize = 16.sp)
       }
-      Text("CHECKPOINT · $levelLabel".uppercase(), style = YukiType.station, color = c.neutral.ink2, modifier = Modifier.weight(1f))
-      (state as? CheckpointState.Asking)?.let { Text("${it.index + 1}/${it.total}", style = MaterialTheme.typography.labelLarge, color = c.neutral.ink2) }
+      Text("CHECKPOINT · $levelLabel".uppercase(), style = YukiType.station, color = Color.White.copy(alpha = 0.85f), modifier = Modifier.weight(1f))
+      (state as? CheckpointState.Asking)?.let { Text("${it.index + 1}/${it.total}", style = MaterialTheme.typography.labelLarge, color = Color.White.copy(alpha = 0.85f)) }
     }
     when (val s = state) {
       CheckpointState.Loading -> Unit
@@ -140,12 +141,18 @@ fun CheckpointScreen(viewModel: CheckpointViewModel, levelLabel: String, onClose
 private fun Question(s: CheckpointState.Asking, onPick: (Int) -> Unit) {
   val c = Yuki.colors
   Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-    Box(Modifier.fillMaxWidth().height(4.dp).background(c.neutral.outline, CircleShape)) {
-      Box(Modifier.fillMaxWidth((s.index.toFloat() / s.total).coerceAtLeast(0.02f)).height(4.dp).background(c.line.field, CircleShape))
+    Box(Modifier.fillMaxWidth().height(4.dp).background(Color.White.copy(alpha = 0.3f), CircleShape)) {
+      Box(Modifier.fillMaxWidth((s.index.toFloat() / s.total).coerceAtLeast(0.02f)).height(4.dp).background(Color.White, CircleShape))
     }
     Spacer(Modifier.weight(0.6f))
-    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Headword(s.question.word.headword, s.question.word.lang) }
-    Text("What does it mean?", style = MaterialTheme.typography.bodyLarge, color = c.neutral.ink2, modifier = Modifier.align(Alignment.CenterHorizontally))
+    // The word sits on a white card, like the front of a study card.
+    Column(
+      Modifier.fillMaxWidth().background(c.neutral.surface, RoundedCornerShape(24.dp)).padding(vertical = 28.dp, horizontal = 16.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      Headword(s.question.word.headword, s.question.word.lang)
+      Text("What does it mean?", style = MaterialTheme.typography.bodyLarge, color = c.neutral.ink2)
+    }
     Spacer(Modifier.weight(0.4f))
     s.question.options.forEachIndexed { i, option ->
       val isAnswer = i == s.question.answer
@@ -160,7 +167,7 @@ private fun Question(s: CheckpointState.Asking, onPick: (Int) -> Unit) {
         onClick = { onPick(i) },
         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
         shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, c.neutral.outline),
+        border = BorderStroke(1.dp, if (revealed && (isAnswer || i == s.picked)) Color.White else c.neutral.outline),
         colors = ButtonDefaults.outlinedButtonColors(containerColor = container, contentColor = content),
       ) { Text(option, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center) }
     }
@@ -174,13 +181,13 @@ private fun Message(lang: Lang, mood: Mood, text: String, button: String, onClic
   Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
     YukiMascot(mood, size = 168.dp, outfit = lang)
     Spacer(Modifier.height(16.dp))
-    Text(text, style = MaterialTheme.typography.bodyLarge, color = c.neutral.ink, textAlign = TextAlign.Center)
+    Text(text, style = MaterialTheme.typography.bodyLarge, color = Color.White, textAlign = TextAlign.Center)
     Spacer(Modifier.height(24.dp))
     Button(
       onClick = onClick,
       shape = CircleShape,
       modifier = Modifier.width(200.dp).height(48.dp),
-      colors = ButtonDefaults.buttonColors(containerColor = c.line.field, contentColor = Color.White),
+      colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = c.line.field),
     ) { Text(button, fontFamily = Unbounded) }
   }
 }

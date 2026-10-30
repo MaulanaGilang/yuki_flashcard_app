@@ -29,7 +29,7 @@ You chose a blend of three well-reviewed references. Each one has a single job, 
 
 | Surface | Mode | Treatment |
 |---|---|---|
-| Study session, session summary, level page | Experience | **Drenched**: full line-colour field, collectible card, route strip |
+| Study session, session summary, level page, **checkpoint** (level test) | Experience | **Drenched**: full line-colour field, collectible card, route strip. The checkpoint shows the word on a white card and white answer buttons (changed 30 Oct 2026; it was on the neutral ground). |
 | Today | Operate (with personality) | Neutral "platform" ground with **line strips**, one per language |
 | Library, word detail, stats, settings | Operate | **Restrained**: neutral surfaces. The line colour appears only in bullets, badges and charts. Standard Material components. |
 
