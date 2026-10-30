@@ -57,8 +57,9 @@ fun SettingsScreen(graph: AppGraph) {
   var message by remember { mutableStateOf<String?>(null) }
   var preview by remember { mutableStateOf<BackupPreview?>(null) }
 
+  // File work runs in the app scope, so leaving Settings never cancels a backup or restore half-way.
   val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
-    if (uri != null) scope.launch {
+    if (uri != null) graph.appScope.launch {
       message = runCatching { graph.backup.export(uri) }
         .fold({ "Backup saved: ${it.cards} cards, ${it.reviews} reviews." }, { "Backup failed: ${it.message}" })
     }
@@ -160,7 +161,7 @@ fun SettingsScreen(graph: AppGraph) {
         TextButton(onClick = {
           val chosen = p
           preview = null
-          scope.launch {
+          graph.appScope.launch {
             message = runCatching { graph.backup.restore(chosen) }.fold({ "Progress restored." }, { "Restore failed: ${it.message}" })
           }
         }) { Text("Replace progress") }
@@ -199,6 +200,16 @@ private fun DeckSettings(graph: AppGraph, lang: Lang) {
         "Easier, but you practise reading less",
         cfg.showReadingOnFront,
       ) { save(cfg.copy(showReadingOnFront = it)) }
+    }
+    var shown by remember(lang) { mutableStateOf(true) }
+    LaunchedEffect(lang) { shown = graph.settings.activeLangs()?.contains(lang) ?: true }
+    ToggleRow("Show on Today", "Study this language and see it on the Today screen", shown) { on ->
+      shown = on
+      scope.launch {
+        val all = graph.packs.packs.value.map { it.lang }.toSet()
+        val active = graph.settings.activeLangs() ?: all
+        graph.settings.setActiveLangs(if (on) active + lang else (active - lang).ifEmpty { setOf(lang) })
+      }
     }
     ToggleRow("Listening cards", "Hear the word, recall its meaning", cfg.listening) { save(cfg.copy(listening = it)) }
     ToggleRow("Production cards", "See the meaning, recall the ${lang.englishName} word", cfg.production) { save(cfg.copy(production = it)) }
@@ -267,7 +278,7 @@ private fun AutoBackupSettings(graph: AppGraph) {
   var note by remember { mutableStateOf<String?>(null) }
   LaunchedEffect(Unit) { folder = graph.settings.autoBackupFolder(); last = graph.settings.lastAutoBackup() }
   val pick = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-    if (uri != null) scope.launch {
+    if (uri != null) graph.appScope.launch {
       runCatching {
         context.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
         graph.settings.setAutoBackupFolder(uri.toString())
@@ -306,11 +317,14 @@ private fun PackImport(graph: AppGraph) {
   var busy by remember { mutableStateOf(false) }
   var note by remember { mutableStateOf<String?>(null) }
   val pick = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-    if (uri != null) scope.launch {
+    // App scope: a big pack takes a while to check, and leaving Settings must not cut it off.
+    if (uri != null) graph.appScope.launch {
       busy = true
       note = "Checking the pack…"
       note = try {
         val m = context.contentResolver.openInputStream(uri)!!.use { graph.packs.import(it) }
+        // A language added after onboarding should show on Today straight away.
+        graph.settings.activeLangs()?.let { active -> graph.settings.setActiveLangs(active + app.yuki.core.model.Lang.fromCode(m.lang)) }
         "Installed ${m.title} (version ${m.version}). Your progress is kept."
       } catch (e: app.yuki.core.data.pack.PackImportException) {
         when (val err = e.error) {

@@ -36,7 +36,7 @@ object AutoBackup {
   }
 
   /** Writes one backup into the tree now. Returns the number of cards saved. */
-  suspend fun runOnce(context: Context, tree: Uri): Int {
+  suspend fun runOnce(context: Context, tree: Uri): Int = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
     val graph = (context.applicationContext as YukiApp).graph
     val resolver = context.contentResolver
     val parent = DocumentsContract.buildDocumentUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree))
@@ -46,7 +46,7 @@ object AutoBackup {
     val manifest = graph.backup.export(target)
     graph.settings.setLastAutoBackup(Instant.now())
     prune(context, tree)
-    return manifest.cards
+    manifest.cards
   }
 
   private fun prune(context: Context, tree: Uri) {
