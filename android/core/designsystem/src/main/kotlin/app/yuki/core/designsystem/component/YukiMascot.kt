@@ -70,8 +70,11 @@ fun YukiMascot(
   modifier: Modifier = Modifier,
   size: Dp = 120.dp,
   tint: Color = Yuki.colors.line.field,
+  /** The language whose outfit she wears (Breton top for French, yukata for Japanese…); null = neutral cardigan and scarf. */
+  outfit: app.yuki.core.model.Lang? = null,
   onTap: (() -> Unit)? = null,
 ) {
+  val outfitKey = outfit?.code ?: "neutral"
   val reduceMotion = rememberReduceMotion()
   val idle = rememberInfiniteTransition(label = "yuki-idle")
   val breath by idle.animateFloat(
@@ -118,7 +121,7 @@ fun YukiMascot(
       label = "mood",
     ) { m ->
       Image(
-        painter = rememberVectorPainter(remember(m, tint) { yukiVector(m, tint) }),
+        painter = rememberVectorPainter(remember(m, tint, outfitKey) { yukiVector(m, tint, outfitKey) }),
         contentDescription = null,
         modifier = Modifier
           .size(size)

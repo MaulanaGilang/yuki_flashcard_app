@@ -64,7 +64,7 @@ sealed interface CheckpointState {
  * the rest of that level as known so you can skip ahead. Answers never touch scheduling.
  */
 class CheckpointViewModel(
-  private val lang: Lang,
+  val lang: Lang,
   private val level: Int,
   private val repo: StudyRepository,
 ) : ViewModel() {
@@ -122,9 +122,10 @@ fun CheckpointScreen(viewModel: CheckpointViewModel, levelLabel: String, onClose
     }
     when (val s = state) {
       CheckpointState.Loading -> Unit
-      CheckpointState.Unavailable -> Message(Mood.SLEEPY, "Not enough words in $levelLabel for a checkpoint yet.", "Back", onClose)
+      CheckpointState.Unavailable -> Message(viewModel.lang, Mood.SLEEPY, "Not enough words in $levelLabel for a checkpoint yet.", "Back", onClose)
       is CheckpointState.Asking -> Question(s, onPick = viewModel::pick)
       is CheckpointState.Done -> Message(
+        viewModel.lang,
         if (s.passed) Mood.CELEBRATE else Mood.WORRIED,
         if (s.passed) "${s.correct}/${s.total}! The rest of $levelLabel is marked as known, so your new cards move on to the next level."
         else "${s.correct}/${s.total}. You need ${CheckpointViewModel.PASS_PERCENT}% to skip $levelLabel. Keep studying it, and try again any time.",
@@ -168,10 +169,10 @@ private fun Question(s: CheckpointState.Asking, onPick: (Int) -> Unit) {
 }
 
 @Composable
-private fun Message(mood: Mood, text: String, button: String, onClick: () -> Unit) {
+private fun Message(lang: Lang, mood: Mood, text: String, button: String, onClick: () -> Unit) {
   val c = Yuki.colors
   Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-    YukiMascot(mood, size = 168.dp)
+    YukiMascot(mood, size = 168.dp, outfit = lang)
     Spacer(Modifier.height(16.dp))
     Text(text, style = MaterialTheme.typography.bodyLarge, color = c.neutral.ink, textAlign = TextAlign.Center)
     Spacer(Modifier.height(24.dp))

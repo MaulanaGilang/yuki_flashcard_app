@@ -307,6 +307,20 @@ Styled like a station departures/arrivals board: Unbounded figures on the line's
 - **Style (chosen 30 Oct 2026):** an **ink-line avatar**: black lines (`neutral.ink`, 3 units in a 200-unit square), white fills, solid black shoulder-length hair with bangs, dot eyes, a little blush, and a white cardigan with buttons. It replaced the AI-rendered chibi girl, whose painterly look clashed with the flat, graphic system. The same outline weight as the app icon makes her part of the design system rather than a pasted-in illustration.
 - **One accent colour:** her **scarf, snowflake hair clip and sparkles** are the only colour (`YukiMascot(tint = …)`). On study, summary and checkpoint screens they take the current **line colour** (default `line.field`); on neutral screens (Today, onboarding), the widget and notifications they're **brand maroon** (`Brand.Maroon`, `MascotGreeting`'s default). The ink outline keeps the scarf readable even on a drenched field of the same colour.
 - **Source:** one script, `pipeline/tools/mascot_yuki.py`, holds the geometry and writes `YukiArt.kt` (Compose `ImageVector` parts, tinted at runtime), the widget/notification vectors `yuki_bust_<pose>.xml` (maroon scarf), `design/mascot/yuki-<pose>.svg` and `design/mascot/preview.html` (every pose on every line colour). No bitmaps: crisp at any size, a few KB in the APK. `design/mascot/styles.html` keeps the four styles that were compared.
+- **Outfits per language (30 Oct 2026):** on study, summary and checkpoint screens she wears the studied language's outfit (`YukiMascot(outfit = lang)`); neutral screens, the widget and notifications keep the cardigan and scarf. Each outfit changes only clothes, one hair touch and one prop beside her shoulder; face, bangs and hair length never change, and there are no hands. The line colour stays the only accent (the baguette and pretzel use a bread tone).
+
+  | Line | Outfit | Hair | Prop |
+  |---|---|---|---|
+  | Mandarin | standing mandarin collar, qipao flap with knot buttons | two buns | tea cup |
+  | Japanese | yukata crossed **left over right**, obi sash | bun with a kanzashi | uchiwa fan |
+  | Spanish | blouse with a white ruffle | bougainvillea flower (replaces the clip) | abanico fan |
+  | French | Breton stripes | beret | tote with a baguette |
+  | German | white blouse, laced bodice | braided crown | pretzel |
+  | Russian | white top | platok headscarf with Gzhel dots, knotted (replaces the clip) | matryoshka |
+  | Arabic | shawl with eight-pointed stars over both shoulders | — | dallah coffee pot |
+  | English (US) | denim jacket, bandana | — | to-go coffee |
+
+  Religious dress (e.g. a hijab) is deliberately not used as a costume.
 - **Poses:** a bust with no hands; the face carries the mood. Wave (calm smile), celebrate (happy closed eyes, open smile, sparkles), worried (raised brows, wobbly mouth, sweat drop), sleepy (closed eyes, "z z").
 - **On Today:** 112 dp, with the speech bubble on a `neutral.surface` card and a tail pointing at her.
 - **Motion:**

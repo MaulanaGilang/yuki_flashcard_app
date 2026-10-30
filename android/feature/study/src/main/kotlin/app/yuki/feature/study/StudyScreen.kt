@@ -408,7 +408,7 @@ private fun EmptySession(lang: Lang, nextLang: Lang?, onClose: () -> Unit) {
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-    YukiMascot(Mood.SLEEPY, size = 180.dp)
+    YukiMascot(Mood.SLEEPY, size = 180.dp, outfit = lang)
     Spacer(Modifier.height(12.dp))
     Text("All caught up", style = MaterialTheme.typography.headlineMedium, color = Color.White, textAlign = TextAlign.Center)
     Spacer(Modifier.height(8.dp))
@@ -425,7 +425,7 @@ private fun SummaryContent(summary: SessionSummary, nextLang: Lang?, onClose: ()
     verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {
     Spacer(Modifier.weight(1f))
-    YukiMascot(Mood.CELEBRATE, size = 168.dp, modifier = Modifier.align(Alignment.CenterHorizontally))
+    YukiMascot(Mood.CELEBRATE, size = 168.dp, outfit = summary.lang, modifier = Modifier.align(Alignment.CenterHorizontally))
     Text(if (summary.accuracyPercent >= 85) "Amazing work!" else "Every review counts. Well done!", style = MaterialTheme.typography.titleMedium, color = Color.White, modifier = Modifier.align(Alignment.CenterHorizontally))
     Text("ARRIVED", style = YukiType.station.copy(letterSpacing = 1.5.sp), color = Color.White.copy(alpha = 0.75f))
     Text(summary.lang.englishName, fontFamily = Unbounded, fontWeight = FontWeight.ExtraBold, fontSize = 30.sp, color = Color.White)
