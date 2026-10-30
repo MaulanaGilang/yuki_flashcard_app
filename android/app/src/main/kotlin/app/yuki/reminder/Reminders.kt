@@ -9,11 +9,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.BitmapFactory
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import app.yuki.MainActivity
 import app.yuki.R
 import app.yuki.YukiApp
@@ -73,7 +73,7 @@ object Reminders {
     )
     val notification = NotificationCompat.Builder(context, CHANNEL)
       .setSmallIcon(R.drawable.ic_stat_yuki)
-      .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.yuki_bust_wave))
+      .setLargeIcon(ContextCompat.getDrawable(context, R.drawable.yuki_bust_wave)?.toBitmap(256, 256))
       .setColor(0xFFD63A22.toInt())
       .setContentTitle(title)
       .setContentText(text)

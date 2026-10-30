@@ -36,26 +36,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import app.yuki.core.designsystem.R
 import app.yuki.core.designsystem.theme.Yuki
 import app.yuki.core.model.Mood
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-fun Mood.drawable(): Int = when (this) {
-  Mood.WAVE -> R.drawable.yuki_wave
-  Mood.CELEBRATE -> R.drawable.yuki_celebrate
-  Mood.WORRIED -> R.drawable.yuki_worried
-  Mood.SLEEPY -> R.drawable.yuki_sleepy
-}
 
 private fun Mood.label() = when (this) {
   Mood.WAVE -> "Yuki waving"
@@ -65,12 +58,19 @@ private fun Mood.label() = when (this) {
 }
 
 /**
- * Yuki, the mascot (PRD S19). A gentle idle "breathing" bob, a pop when her mood changes, two
- * little hops when celebrating, and a hop when tapped. All motion is in graphics layers and
- * stops when the system "Remove animations" setting is on.
+ * Yuki, the mascot (PRD S19): a snow spirit drawn as a pictogram (YukiArt.kt), whose scarf,
+ * hair-clip flake and sparkles take [tint], the current line colour by default. A gentle idle
+ * "breathing" bob, a pop when her mood changes, two little hops when celebrating, and a hop when
+ * tapped. All motion is in graphics layers and stops when the system "Remove animations" setting is on.
  */
 @Composable
-fun YukiMascot(mood: Mood, modifier: Modifier = Modifier, size: Dp = 120.dp, onTap: (() -> Unit)? = null) {
+fun YukiMascot(
+  mood: Mood,
+  modifier: Modifier = Modifier,
+  size: Dp = 120.dp,
+  tint: Color = Yuki.colors.line.field,
+  onTap: (() -> Unit)? = null,
+) {
   val reduceMotion = rememberReduceMotion()
   val idle = rememberInfiniteTransition(label = "yuki-idle")
   val breath by idle.animateFloat(
@@ -117,7 +117,7 @@ fun YukiMascot(mood: Mood, modifier: Modifier = Modifier, size: Dp = 120.dp, onT
       label = "mood",
     ) { m ->
       Image(
-        painter = painterResource(m.drawable()),
+        painter = rememberVectorPainter(remember(m, tint) { yukiVector(m, tint) }),
         contentDescription = null,
         modifier = Modifier
           .size(size)

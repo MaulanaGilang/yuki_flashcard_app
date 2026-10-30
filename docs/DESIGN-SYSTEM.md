@@ -299,11 +299,10 @@ Styled like a station departures/arrivals board: Unbounded figures on the line's
 - Empty state: "Open Yuki to start your first line".
 
 ### 5.13 Yuki, the mascot
-- **Source files:**
-  - Raw renders live in `design/mascot/raw/`, made with Nano Banana 2.1 on Higgsfield from the reference image, chibi style.
-  - Background cut-outs, the widget busts and the icon sizes are produced by `pipeline/tools/mascot_assets.py`, locally and free.
-- **Poses:** wave, celebrate, worried, sleepy. Full-body sprites are 640 px tall (WebP, ~40 KB); widget busts are 256 px.
-- **Look:** cream cardigan, red-orange snowflake clip (Yuki = snow), clover necklace. Always modest and friendly.
+- **Style (changed 30 Oct 2026):** a **snow spirit drawn like a transit pictogram**, replacing the earlier AI-rendered chibi girl, whose painterly look clashed with the flat, graphic system. A round snowball body in warm white `#FFF8F3`, every outline the same ink stroke (`neutral.ink`, 3.2 units in a 120-unit square), dot eyes, blush cheeks, stubby capsule arms and a soft ground shadow.
+- **Line colour:** her **scarf, hair-clip snowflake and sparkles take the current line colour** (`YukiMascot(tint = …)`, default `line.field`): red on Mandarin, magenta on Spanish, and so on. The ink outline keeps the scarf readable even on a drenched field of the same colour.
+- **Source:** one script, `pipeline/tools/mascot_snow.py`, holds the geometry and writes `YukiArt.kt` (Compose `ImageVector` parts, tinted at runtime), the widget/notification vectors `yuki_bust_<pose>.xml` (Persimmon scarf), `design/mascot/yuki-<pose>.svg` and `design/mascot/preview.html` (every pose on every line colour). No bitmaps: crisp at any size, a few KB in the APK.
+- **Poses:** wave, celebrate (arms up, happy eyes, sparkles), worried (raised brows, sweat drop), sleepy (closed eyes, "z z").
 - **On Today:** 112 dp, with the speech bubble on a `neutral.surface` card and a tail pointing at her.
 - **Motion:**
   - Idle: scaleY +1.8 % over 1.6 s, reversing.

@@ -242,7 +242,7 @@ Priority: **P0** = MVP, **P1** = v1.1, **P2** = later.
 #### Yuki, the mascot
 
 **S19 (P0). As a learner, I want Yuki to cheer me on and remind me, so that studying feels friendly and I keep my streak.**
-- Yuki is a 2D chibi character (made from the owner's AI-generated reference), with four poses: waving, celebrating, worried, sleepy.
+- Yuki is a flat snow spirit drawn like a transit pictogram, with a scarf in the current language's line colour, and four poses: waving, celebrating, worried, sleepy. (Changed 30 Oct 2026 from a 2D chibi girl made from the owner's AI-generated reference; see DESIGN-SYSTEM §5.13.)
 - **Today:** Yuki with a speech bubble at the top. Her mood and line follow the day:
   - no languages yet → waves hello,
   - studied today → celebrates (or sleeps late at night),
